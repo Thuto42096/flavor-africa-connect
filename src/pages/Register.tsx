@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { MapPin } from "lucide-react";
+import { MapPin, Users, Store } from "lucide-react";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -17,12 +18,13 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [userType, setUserType] = useState<'customer' | 'business_owner'>('customer');
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       toast.error("Eish! Passwords don't match, my bru 😅");
       return;
@@ -36,10 +38,14 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      const success = await register(name, email, password, phone);
+      const success = await register(name, email, password, phone, userType);
       if (success) {
         toast.success("Yebo! Welcome to the fam! 🎉🔥");
-        navigate("/");
+        if (userType === 'business_owner') {
+          navigate("/business-onboarding");
+        } else {
+          navigate("/");
+        }
       } else {
         toast.error("Haibo! This email is already registered 😬");
       }
@@ -68,6 +74,19 @@ const Register = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <Tabs value={userType} onValueChange={(value) => setUserType(value as 'customer' | 'business_owner')} className="w-full mb-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="customer" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">Customer</span>
+                </TabsTrigger>
+                <TabsTrigger value="business_owner" className="flex items-center gap-2">
+                  <Store className="h-4 w-4" />
+                  <span className="hidden sm:inline">Business</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>

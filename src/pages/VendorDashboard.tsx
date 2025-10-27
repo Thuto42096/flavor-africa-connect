@@ -1,35 +1,55 @@
-import { BarChart3, Eye, TrendingUp, Users } from "lucide-react";
+import { useState } from "react";
+import { BarChart3, Eye, TrendingUp, Users, ShoppingCart, UtensilsCrossed, Clock, Bell } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import OrdersManagement from "@/components/OrdersManagement";
+import MenuManagement from "@/components/MenuManagement";
+import BusinessHoursManagement from "@/components/BusinessHoursManagement";
+import NotificationsCenter from "@/components/NotificationsCenter";
+import { useBusiness } from "@/contexts/BusinessContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const VendorDashboard = () => {
+  const { business } = useBusiness();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
+
   const stats = [
     { icon: Eye, label: "Profile Views", value: "1,245", change: "+12.5%" },
     { icon: Users, label: "Customer Clicks", value: "342", change: "+8.3%" },
-    { icon: TrendingUp, label: "Review Score", value: "4.8", change: "+0.2" },
-    { icon: BarChart3, label: "Ranking", value: "#12", change: "↑ 3" },
+    { icon: TrendingUp, label: "Review Score", value: business?.rating || "4.8", change: "+0.2" },
+    { icon: ShoppingCart, label: "Total Orders", value: business?.totalOrders || "0", change: "↑ 3" },
   ];
 
-  const topDishes = [
-    { name: "Jollof Rice Special", views: 234, orders: 87 },
-    { name: "Suya Platter", views: 189, orders: 65 },
-    { name: "Egusi Soup", views: 156, orders: 52 },
+  const topDishes = business?.menu.slice(0, 3) || [
+    { name: "Pap & Vleis", price: "85", available: true },
+    { name: "Boerewors Roll", price: "45", available: true },
+    { name: "Lamb Chops", price: "120", available: true },
   ];
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <div className="flex-1 bg-muted/30">
         <div className="container py-8 space-y-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold">Vendor Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back, Mama Ngozi's Kitchen</p>
+              <p className="text-muted-foreground">Welcome back, {business?.name || user?.name || "Mama"}! 🔥</p>
             </div>
-            <Button>Edit Profile</Button>
+            <div className="flex gap-2">
+              {business && business.notifications.filter(n => !n.read).length > 0 && (
+                <Badge className="bg-red-500">
+                  {business.notifications.filter(n => !n.read).length} New
+                </Badge>
+              )}
+              <Button>Edit Profile</Button>
+            </div>
           </div>
 
           {/* Stats Grid */}
@@ -55,77 +75,90 @@ const VendorDashboard = () => {
             })}
           </div>
 
-          {/* Charts and Insights */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Weekly Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-center justify-center text-muted-foreground">
-                  Chart visualization would appear here
-                </div>
-              </CardContent>
-            </Card>
+          {/* Tabs Navigation */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Overview</span>
+              </TabsTrigger>
+              <TabsTrigger value="orders" className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                <span className="hidden sm:inline">Orders</span>
+              </TabsTrigger>
+              <TabsTrigger value="menu" className="flex items-center gap-2">
+                <UtensilsCrossed className="h-4 w-4" />
+                <span className="hidden sm:inline">Menu</span>
+              </TabsTrigger>
+              <TabsTrigger value="hours" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span className="hidden sm:inline">Hours</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center gap-2">
+                <Bell className="h-4 w-4" />
+                <span className="hidden sm:inline">Alerts</span>
+              </TabsTrigger>
+            </TabsList>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Dishes</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {topDishes.map((dish, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm">{dish.name}</span>
-                      <span className="text-xs text-muted-foreground">{dish.views} views</span>
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="space-y-8">
+              {/* Charts and Insights */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle>Weekly Performance</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-64 flex items-center justify-center text-muted-foreground">
+                      Chart visualization would appear here
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-primary rounded-full h-2"
-                        style={{ width: `${(dish.orders / dish.views) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
+                  </CardContent>
+                </Card>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                  <TrendingUp className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold">Boost Your Listing</h3>
-                <p className="text-sm text-muted-foreground">Promote your business to reach more customers</p>
-                <Button variant="outline" className="w-full">Learn More</Button>
-              </CardContent>
-            </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Top Menu Items</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {topDishes.map((dish, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-sm">{dish.name || "Pap & Vleis"}</span>
+                          <span className="text-xs text-muted-foreground">R{dish.price || "85"}</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div
+                            className="bg-primary rounded-full h-2"
+                            style={{ width: `${Math.random() * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mx-auto">
-                  <BarChart3 className="h-6 w-6 text-secondary" />
-                </div>
-                <h3 className="font-semibold">View Analytics</h3>
-                <p className="text-sm text-muted-foreground">Deep dive into your performance metrics</p>
-                <Button variant="outline" className="w-full">View Details</Button>
-              </CardContent>
-            </Card>
+            {/* Orders Tab */}
+            <TabsContent value="orders">
+              <OrdersManagement />
+            </TabsContent>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
-                  <Users className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="font-semibold">Connect with Experts</h3>
-                <p className="text-sm text-muted-foreground">Get personalized business advice</p>
-                <Button variant="outline" className="w-full">Get Help</Button>
-              </CardContent>
-            </Card>
-          </div>
+            {/* Menu Tab */}
+            <TabsContent value="menu">
+              <MenuManagement />
+            </TabsContent>
+
+            {/* Hours Tab */}
+            <TabsContent value="hours">
+              <BusinessHoursManagement />
+            </TabsContent>
+
+            {/* Notifications Tab */}
+            <TabsContent value="notifications">
+              <NotificationsCenter />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 

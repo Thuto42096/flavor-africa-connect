@@ -8,14 +8,17 @@ export interface User {
   location?: string;
   avatar?: string;
   joinedDate: string;
+  role?: 'customer' | 'business_owner';
+  businessId?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string, phone?: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string, phone?: string, role?: 'customer' | 'business_owner') => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
+  isBusinessOwner: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,11 +56,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return false;
   };
 
-  const register = async (name: string, email: string, password: string, phone?: string): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string, phone?: string, role: 'customer' | 'business_owner' = 'customer'): Promise<boolean> => {
     // Check if user already exists
     const users = JSON.parse(localStorage.getItem('tastelocal_users') || '[]');
     const existingUser = users.find((u: any) => u.email === email);
-    
+
     if (existingUser) {
       return false; // User already exists
     }
@@ -70,6 +73,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       phone,
       password, // In production, this would be hashed
       joinedDate: new Date().toISOString(),
+      role,
+      ...(role === 'business_owner' && { businessId: `business_${Date.now()}` }),
     };
 
     users.push(newUser);
@@ -93,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     isAuthenticated: !!user,
+    isBusinessOwner: user?.role === 'business_owner',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
