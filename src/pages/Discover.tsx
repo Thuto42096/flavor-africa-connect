@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,23 +6,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BusinessCard from "@/components/BusinessCard";
+import { businessService, Business } from "@/services/businessService";
 import food1 from "@/assets/food-1.jpg";
 import food2 from "@/assets/food-2.jpg";
 
 const Discover = () => {
   const [cuisine, setCuisine] = useState("all");
   const [priceRange, setPriceRange] = useState("all");
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const businesses = [
+  const fallbackBusinesses = [
     { id: "1", name: "Mama Thandi's Shisa Nyama", image: food1, cuisine: "Braai & Grill", location: "Soweto, Johannesburg", rating: 4.8, priceRange: "R", distance: "1.2km" },
     { id: "2", name: "Kota King", image: food2, cuisine: "Street Food", location: "Alexandra, Johannesburg", rating: 4.6, priceRange: "R", distance: "0.8km" },
     { id: "3", name: "Bunny Chow Palace", image: food1, cuisine: "Durban Curry", location: "Umlazi, Durban", rating: 4.9, priceRange: "R", distance: "2.1km" },
-    { id: "4", name: "Boerewors & Pap Spot", image: food2, cuisine: "Traditional", location: "Mamelodi, Pretoria", rating: 4.7, priceRange: "R", distance: "1.5km" },
-    { id: "5", name: "Smiley's Place", image: food1, cuisine: "Sheep Head & Offal", location: "Khayelitsha, Cape Town", rating: 4.5, priceRange: "RR", distance: "3.2km" },
-    { id: "6", name: "Amagwinya Queen", image: food2, cuisine: "Vetkoek & More", location: "Tembisa, Johannesburg", rating: 4.8, priceRange: "R", distance: "2.8km" },
-    { id: "7", name: "Mogodu Master", image: food1, cuisine: "Traditional", location: "Soshanguve, Pretoria", rating: 4.6, priceRange: "R", distance: "4.1km" },
-    { id: "8", name: "Walkie Talkies & More", image: food2, cuisine: "Street Food", location: "Diepsloot, Johannesburg", rating: 4.4, priceRange: "R", distance: "5.2km" },
   ];
+
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      try {
+        const data = await businessService.getAll();
+        setBusinesses(data);
+      } catch (error) {
+        console.error('Firebase not configured, using fallback data');
+        setBusinesses(fallbackBusinesses);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBusinesses();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -74,7 +87,7 @@ const Discover = () => {
           {/* Results */}
           <div>
             <p className="text-sm text-muted-foreground mb-4">
-              Showing {businesses.length} restaurants
+              {loading ? 'Loading...' : `Showing ${businesses.length} restaurants`}
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
