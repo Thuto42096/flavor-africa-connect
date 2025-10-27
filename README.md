@@ -2,6 +2,9 @@
 
 A modern web application for discovering and ordering food from local South African businesses with a kasi flavor. Built with React, TypeScript, Firebase, and Tailwind CSS.
 
+🌐 **Live Site**: [tastekasi.vercel.app](https://tastekasi.vercel.app)
+📦 **GitHub Repository**: [github.com/Thuto42096/flavor-africa-connect](https://github.com/Thuto42096/flavor-africa-connect)
+
 ## 🌟 Features
 
 ### For Customers
