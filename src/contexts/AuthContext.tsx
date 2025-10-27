@@ -149,7 +149,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await setDoc(doc(db, 'users', firebaseUser.uid), userProfileData);
 
       // Send verification email
-      await emailVerificationService.sendVerificationEmail(firebaseUser);
+      try {
+        await emailVerificationService.sendVerificationEmail(firebaseUser);
+      } catch (emailError) {
+        console.warn('Email verification failed:', emailError);
+      }
 
       // If business owner, create initial business profile
       if (role === 'business_owner' && businessId) {
@@ -173,9 +177,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      return false;
+      
+      // Handle specific Firebase Auth errors
+      if (error.code === 'auth/email-already-in-use') {
+        throw new Error('This email is already registered. Please use a different email or try logging in.');
+      }
+      
+      throw error;
     } finally {
       setIsLoading(false);
     }

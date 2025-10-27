@@ -54,8 +54,16 @@ const Register = () => {
       } else {
         toast.error("Haibo! This email is already registered 😬");
       }
-    } catch (error) {
-      toast.error("Eish! Something went wrong 😬");
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("Eish! Something went wrong 😬");
+      }
+      // Don't proceed if there's an error
+      setIsLoading(false);
+      return;
     } finally {
       setIsLoading(false);
     }

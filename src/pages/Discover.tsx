@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BusinessCard from "@/components/BusinessCard";
 import { businessService, Business } from "@/services/businessService";
+import { seedDatabase } from "@/services/seedData";
 import food1 from "@/assets/food-1.jpg";
 import food2 from "@/assets/food-2.jpg";
 
@@ -25,10 +26,11 @@ const Discover = () => {
   useEffect(() => {
     const fetchBusinesses = async () => {
       try {
+        await seedDatabase(); // Auto-populate if empty
         const data = await businessService.getAll();
         setBusinesses(data);
       } catch (error) {
-        console.error('Firebase not configured, using fallback data');
+        console.error('Firebase error, using fallback data');
         setBusinesses(fallbackBusinesses);
       } finally {
         setLoading(false);
