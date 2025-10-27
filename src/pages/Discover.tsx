@@ -14,12 +14,14 @@ const Discover = () => {
   const [priceRange, setPriceRange] = useState("all");
 
   const businesses = [
-    { id: "1", name: "Mama Ngozi's Kitchen", image: food1, cuisine: "Traditional", location: "Lagos, Nigeria", rating: 4.8, priceRange: "$$", distance: "1.2km" },
-    { id: "2", name: "Street Flavor Hub", image: food2, cuisine: "Street Food", location: "Nairobi, Kenya", rating: 4.6, priceRange: "$", distance: "0.8km" },
-    { id: "3", name: "Jollof Palace", image: food1, cuisine: "West African", location: "Accra, Ghana", rating: 4.9, priceRange: "$$", distance: "2.1km" },
-    { id: "4", name: "Suya Spot", image: food2, cuisine: "Grilled", location: "Kano, Nigeria", rating: 4.7, priceRange: "$", distance: "1.5km" },
-    { id: "5", name: "Ocean Breeze Restaurant", image: food1, cuisine: "Seafood", location: "Mombasa, Kenya", rating: 4.5, priceRange: "$$$", distance: "3.2km" },
-    { id: "6", name: "Afro Fusion Bistro", image: food2, cuisine: "Fusion", location: "Cape Town, South Africa", rating: 4.8, priceRange: "$$", distance: "2.8km" },
+    { id: "1", name: "Mama Thandi's Shisa Nyama", image: food1, cuisine: "Braai & Grill", location: "Soweto, Johannesburg", rating: 4.8, priceRange: "R", distance: "1.2km" },
+    { id: "2", name: "Kota King", image: food2, cuisine: "Street Food", location: "Alexandra, Johannesburg", rating: 4.6, priceRange: "R", distance: "0.8km" },
+    { id: "3", name: "Bunny Chow Palace", image: food1, cuisine: "Durban Curry", location: "Umlazi, Durban", rating: 4.9, priceRange: "R", distance: "2.1km" },
+    { id: "4", name: "Boerewors & Pap Spot", image: food2, cuisine: "Traditional", location: "Mamelodi, Pretoria", rating: 4.7, priceRange: "R", distance: "1.5km" },
+    { id: "5", name: "Smiley's Place", image: food1, cuisine: "Sheep Head & Offal", location: "Khayelitsha, Cape Town", rating: 4.5, priceRange: "RR", distance: "3.2km" },
+    { id: "6", name: "Amagwinya Queen", image: food2, cuisine: "Vetkoek & More", location: "Tembisa, Johannesburg", rating: 4.8, priceRange: "R", distance: "2.8km" },
+    { id: "7", name: "Mogodu Master", image: food1, cuisine: "Traditional", location: "Soshanguve, Pretoria", rating: 4.6, priceRange: "R", distance: "4.1km" },
+    { id: "8", name: "Walkie Talkies & More", image: food2, cuisine: "Street Food", location: "Diepsloot, Johannesburg", rating: 4.4, priceRange: "R", distance: "5.2km" },
   ];
 
   return (

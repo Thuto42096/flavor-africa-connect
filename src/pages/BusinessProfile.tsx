@@ -1,34 +1,73 @@
 import { useParams } from "react-router-dom";
-import { MapPin, Phone, Clock, Star, Share2 } from "lucide-react";
+import { MapPin, Phone, Clock, Star, Share2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ReviewSection from "@/components/ReviewSection";
+import { toast } from "sonner";
 import food1 from "@/assets/food-1.jpg";
 
 const BusinessProfile = () => {
   const { id } = useParams();
 
   const business = {
-    name: "Mama Ngozi's Kitchen",
+    name: "Mama Thandi's Shisa Nyama",
     image: food1,
-    cuisine: "Traditional Nigerian",
-    location: "123 Market Street, Lagos, Nigeria",
-    phone: "+234 801 234 5678",
+    cuisine: "Traditional South African",
+    location: "Vilakazi Street, Soweto, Johannesburg",
+    phone: "+27 71 234 5678",
+    whatsapp: "27712345678",
     rating: 4.8,
     reviews: 142,
-    priceRange: "$$",
-    hours: "Mon-Sat: 8am - 10pm",
-    description: "Experience authentic Nigerian home cooking at its finest. Mama Ngozi has been serving the community for over 15 years with recipes passed down through generations.",
+    priceRange: "R",
+    hours: "Mon-Sat: 10am - 10pm, Sun: 12pm - 8pm",
+    description: "Eish! Welcome to the best shisa nyama in Soweto! Mama Thandi has been serving the community for over 15 years with authentic kasi flavors. From perfectly grilled boerewors to tender lamb chops, we bring you that real township taste. Come through and experience the vibe! 🔥",
     menu: [
-      { name: "Jollof Rice with Chicken", price: "₦2,500" },
-      { name: "Egusi Soup with Pounded Yam", price: "₦3,000" },
-      { name: "Suya Platter", price: "₦1,800" },
-      { name: "Moi Moi", price: "₦800" },
-      { name: "Chin Chin (Snack)", price: "₦500" },
+      { name: "Pap & Vleis Combo", price: "R85" },
+      { name: "Boerewors Roll", price: "R45" },
+      { name: "Lamb Chops (4 pieces)", price: "R120" },
+      { name: "Chicken Braai Quarter", price: "R65" },
+      { name: "Chakalaka & Pap", price: "R35" },
+      { name: "Kota (Quarter Loaf)", price: "R55" },
     ],
+  };
+
+  const handleWhatsAppOrder = () => {
+    const message = encodeURIComponent(
+      `Sawubona! I'd like to place an order from ${business.name}. Can you help me? 🍽️`
+    );
+    const whatsappUrl = `https://wa.me/${business.whatsapp}?text=${message}`;
+    window.open(whatsappUrl, "_blank");
+    toast.success("Opening WhatsApp... 📱");
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: business.name,
+      text: `Check out ${business.name} on TasteLocal! ${business.description.slice(0, 100)}...`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast.success("Sharp! Thanks for sharing! 🙌");
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          copyToClipboard();
+        }
+      }
+    } else {
+      copyToClipboard();
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success("Link copied! Share it with your crew! 📋");
   };
 
   return (
@@ -86,18 +125,31 @@ const BusinessProfile = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Reviews Section */}
+              <ReviewSection businessId={id || "1"} businessName={business.name} />
             </div>
 
             {/* Sidebar */}
             <div className="space-y-6">
               <Card>
                 <CardContent className="p-6 space-y-4">
-                  <Button className="w-full" size="lg">
-                    Contact Business
+                  <Button
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    size="lg"
+                    onClick={handleWhatsAppOrder}
+                  >
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Order on WhatsApp
                   </Button>
-                  <Button variant="outline" className="w-full" size="lg">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    size="lg"
+                    onClick={handleShare}
+                  >
                     <Share2 className="h-4 w-4 mr-2" />
-                    Share
+                    Share with Friends
                   </Button>
                 </CardContent>
               </Card>

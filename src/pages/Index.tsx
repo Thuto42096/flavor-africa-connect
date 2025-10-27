@@ -13,32 +13,32 @@ const Index = () => {
   const featuredBusinesses = [
     {
       id: "1",
-      name: "Mama Ngozi's Kitchen",
+      name: "Mama Thandi's Shisa Nyama",
       image: food1,
-      cuisine: "Traditional",
-      location: "Lagos, Nigeria",
+      cuisine: "Braai & Grill",
+      location: "Soweto, Johannesburg",
       rating: 4.8,
-      priceRange: "$$",
+      priceRange: "R",
       distance: "1.2km",
     },
     {
       id: "2",
-      name: "Street Flavor Hub",
+      name: "Kota King",
       image: food2,
       cuisine: "Street Food",
-      location: "Nairobi, Kenya",
+      location: "Alexandra, Johannesburg",
       rating: 4.6,
-      priceRange: "$",
+      priceRange: "R",
       distance: "0.8km",
     },
     {
       id: "3",
-      name: "Jollof Palace",
+      name: "Bunny Chow Palace",
       image: food1,
-      cuisine: "West African",
-      location: "Accra, Ghana",
+      cuisine: "Durban Curry",
+      location: "Umlazi, Durban",
       rating: 4.9,
-      priceRange: "$$",
+      priceRange: "R",
       distance: "2.1km",
     },
   ];
@@ -58,19 +58,19 @@ const Index = () => {
         
         <div className="relative z-10 container text-center text-white space-y-6 px-4">
           <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-            Discover Authentic
+            Discover the Best
             <br />
-            <span className="text-accent">Local Flavors</span>
+            <span className="text-accent">Kasi Flavors 🔥</span>
           </h1>
           <p className="text-xl md:text-2xl max-w-2xl mx-auto text-white/90">
-            Connect with local restaurants, food stalls, and hidden gems in your community
+            Connect with local spots, shisa nyamas, and hidden gems in your township
           </p>
-          
+
           <div className="max-w-2xl mx-auto flex gap-2">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Search for food, restaurants, or cuisine..."
+                placeholder="Search for kotas, bunny chow, pap & vleis..."
                 className="pl-10 h-12 bg-white"
               />
             </div>
@@ -106,10 +106,10 @@ const Index = () => {
         <div className="container space-y-12">
           <div className="text-center space-y-3">
             <h2 className="text-3xl md:text-4xl font-bold">
-              Hidden Gems <span className="text-primary">Near You</span>
+              Kasi Spots <span className="text-primary">Near You 📍</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Discover authentic local eateries handpicked by our community
+              Discover authentic township eateries handpicked by the community
             </p>
           </div>
           
