@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +13,12 @@ import food1 from "@/assets/food-1.jpg";
 import food2 from "@/assets/food-2.jpg";
 
 const Discover = () => {
+  const [searchParams] = useSearchParams();
   const [cuisine, setCuisine] = useState("all");
   const [priceRange, setPriceRange] = useState("all");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || "");
   const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fallbackBusinesses = [
@@ -28,9 +32,11 @@ const Discover = () => {
       try {
         await seedDatabase(); // Auto-populate if empty
         const data = await businessService.getAll();
+        setAllBusinesses(data);
         setBusinesses(data);
       } catch (error) {
         console.error('Firebase error, using fallback data');
+        setAllBusinesses(fallbackBusinesses);
         setBusinesses(fallbackBusinesses);
       } finally {
         setLoading(false);
@@ -38,6 +44,40 @@ const Discover = () => {
     };
     fetchBusinesses();
   }, []);
+
+  // Filter businesses based on search and filters
+  useEffect(() => {
+    if (allBusinesses.length === 0) return;
+    
+    let filtered = [...allBusinesses];
+    console.log('All businesses:', allBusinesses.length);
+    console.log('Search query:', searchQuery);
+
+    // Search filter
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(business => 
+        business.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        business.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        business.cuisine?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      console.log('After search filter:', filtered.length);
+    }
+
+    // Cuisine filter
+    if (cuisine !== "all") {
+      filtered = filtered.filter(business => 
+        business.cuisine?.toLowerCase().includes(cuisine.toLowerCase())
+      );
+    }
+
+    // Price range filter
+    if (priceRange !== "all") {
+      filtered = filtered.filter(business => business.priceRange === priceRange);
+    }
+
+    console.log('Final filtered:', filtered.length);
+    setBusinesses(filtered);
+  }, [searchQuery, cuisine, priceRange, allBusinesses]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -52,7 +92,12 @@ const Discover = () => {
 
           {/* Filters */}
           <div className="flex flex-col md:flex-row gap-4 p-6 bg-card rounded-lg border border-border">
-            <Input placeholder="Search by name or location..." className="md:flex-1" />
+            <Input 
+              placeholder="Search by name or location..." 
+              className="md:flex-1"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
             
             <Select value={cuisine} onValueChange={setCuisine}>
               <SelectTrigger className="md:w-48">

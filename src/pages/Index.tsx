@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Search, TrendingUp, MapPin, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +16,20 @@ import vendorImage from "@/assets/vendor-business.jpg";
 const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = () => {
-    navigate("/discover");
+    if (searchQuery.trim()) {
+      navigate(`/discover?search=${encodeURIComponent(searchQuery)}`);
+    } else {
+      navigate("/discover");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   const handleViewAllRestaurants = () => {
@@ -98,7 +110,10 @@ const Index = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="Search for kotas, bunny chow, pap & vleis..."
-                className="pl-10 h-12 bg-white"
+                className="pl-10 h-12 bg-white text-black placeholder:text-gray-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
               />
             </div>
             <Button size="lg" className="h-12 px-8" onClick={handleSearch}>
