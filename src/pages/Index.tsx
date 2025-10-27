@@ -1,15 +1,42 @@
 import { Search, TrendingUp, MapPin, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BusinessCard from "@/components/BusinessCard";
+import { toast } from "sonner";
 import heroImage from "@/assets/hero-food.jpg";
 import food1 from "@/assets/food-1.jpg";
 import food2 from "@/assets/food-2.jpg";
 import vendorImage from "@/assets/vendor-business.jpg";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+
+  const handleSearch = () => {
+    navigate("/discover");
+  };
+
+  const handleViewAllRestaurants = () => {
+    navigate("/discover");
+  };
+
+  const handleRegisterBusiness = () => {
+    if (isAuthenticated && user?.role === "business_owner") {
+      navigate("/vendor-dashboard");
+      toast.success("Welcome back to your dashboard! 🏪");
+    } else if (isAuthenticated) {
+      navigate("/business-onboarding");
+      toast.info("Let's set up your business profile! 🚀");
+    } else {
+      navigate("/register");
+      toast.info("Register as a business owner to get started! 📝");
+    }
+  };
+
   const featuredBusinesses = [
     {
       id: "1",
@@ -74,7 +101,7 @@ const Index = () => {
                 className="pl-10 h-12 bg-white"
               />
             </div>
-            <Button size="lg" className="h-12 px-8">
+            <Button size="lg" className="h-12 px-8" onClick={handleSearch}>
               Search
             </Button>
           </div>
@@ -120,7 +147,7 @@ const Index = () => {
           </div>
           
           <div className="text-center">
-            <Button size="lg" variant="outline">
+            <Button size="lg" variant="outline" onClick={handleViewAllRestaurants}>
               View All Restaurants
             </Button>
           </div>
@@ -164,7 +191,7 @@ const Index = () => {
                 </div>
               </div>
               
-              <Button size="lg" variant="secondary" className="mt-6">
+              <Button size="lg" variant="secondary" className="mt-6" onClick={handleRegisterBusiness}>
                 Register Your Business
               </Button>
             </div>

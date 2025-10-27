@@ -1,11 +1,30 @@
 import { CheckCircle, TrendingUp, Users, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { toast } from "sonner";
 import vendorImage from "@/assets/vendor-business.jpg";
 
 const ForBusinesses = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+
+  const handleGetStarted = () => {
+    if (isAuthenticated && user?.role === "business_owner") {
+      navigate("/vendor-dashboard");
+      toast.success("Welcome back to your dashboard! 🏪");
+    } else if (isAuthenticated) {
+      navigate("/business-onboarding");
+      toast.info("Let's set up your business profile! 🚀");
+    } else {
+      navigate("/register");
+      toast.info("Register as a business owner to get started! 📝");
+    }
+  };
+
   const benefits = [
     { icon: TrendingUp, title: "Increase Visibility", description: "Reach thousands of local food lovers searching for authentic dining experiences" },
     { icon: Users, title: "Build Your Brand", description: "Create a professional online presence with your menu, photos, and customer reviews" },
@@ -38,7 +57,7 @@ const ForBusinesses = () => {
                   Join TasteLocal and connect with customers who love authentic local food. 
                   Get the tools you need to succeed in the digital age.
                 </p>
-                <Button size="lg" variant="secondary">
+                <Button size="lg" variant="secondary" onClick={handleGetStarted}>
                   Get Started Free
                 </Button>
               </div>
@@ -101,7 +120,7 @@ const ForBusinesses = () => {
                   ))}
                 </div>
 
-                <Button size="lg" className="mt-6">
+                <Button size="lg" className="mt-6" onClick={handleGetStarted}>
                   Register Your Business
                 </Button>
               </div>
@@ -138,7 +157,7 @@ const ForBusinesses = () => {
                 <p className="text-xl text-white/90 max-w-2xl mx-auto">
                   Join thousands of local businesses already growing with TasteLocal
                 </p>
-                <Button size="lg" variant="secondary">
+                <Button size="lg" variant="secondary" onClick={handleGetStarted}>
                   Create Free Account
                 </Button>
               </CardContent>
