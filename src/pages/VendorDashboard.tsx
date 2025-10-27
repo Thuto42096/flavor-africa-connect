@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, Eye, TrendingUp, Users, ShoppingCart, UtensilsCrossed, Clock, Bell } from "lucide-react";
+import { BarChart3, Eye, TrendingUp, Users, ShoppingCart, UtensilsCrossed, Clock, Bell, Image, BookOpen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +10,8 @@ import OrdersManagement from "@/components/OrdersManagement";
 import MenuManagement from "@/components/MenuManagement";
 import BusinessHoursManagement from "@/components/BusinessHoursManagement";
 import NotificationsCenter from "@/components/NotificationsCenter";
+import MediaGallery from "@/components/MediaGallery";
+import BlogManagement from "@/components/BlogManagement";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -77,7 +79,7 @@ const VendorDashboard = () => {
 
           {/* Tabs Navigation */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Overview</span>
@@ -97,6 +99,14 @@ const VendorDashboard = () => {
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="h-4 w-4" />
                 <span className="hidden sm:inline">Alerts</span>
+              </TabsTrigger>
+              <TabsTrigger value="media" className="flex items-center gap-2">
+                <Image className="h-4 w-4" />
+                <span className="hidden sm:inline">Media</span>
+              </TabsTrigger>
+              <TabsTrigger value="blog" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden sm:inline">Blog</span>
               </TabsTrigger>
             </TabsList>
 
@@ -157,6 +167,16 @@ const VendorDashboard = () => {
             {/* Notifications Tab */}
             <TabsContent value="notifications">
               <NotificationsCenter />
+            </TabsContent>
+
+            {/* Media Tab */}
+            <TabsContent value="media">
+              <MediaGallery />
+            </TabsContent>
+
+            {/* Blog Tab */}
+            <TabsContent value="blog">
+              <BlogManagement />
             </TabsContent>
           </Tabs>
         </div>

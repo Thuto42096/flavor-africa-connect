@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReviewSection from "@/components/ReviewSection";
+import BusinessMediaDisplay from "@/components/BusinessMediaDisplay";
 import { toast } from "sonner";
 import food1 from "@/assets/food-1.jpg";
 
@@ -125,6 +126,9 @@ const BusinessProfile = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Media & Blog Section */}
+              <BusinessMediaDisplay />
 
               {/* Reviews Section */}
               <ReviewSection businessId={id || "1"} businessName={business.name} />

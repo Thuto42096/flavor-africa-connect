@@ -16,6 +16,7 @@ import {
 import { Trash2, Edit2, Plus } from 'lucide-react';
 import { useBusiness, MenuItem } from '@/contexts/BusinessContext';
 import { toast } from 'sonner';
+import ImageUpload from './ImageUpload';
 
 const MenuManagement = () => {
   const { business, addMenuItem, updateMenuItem, deleteMenuItem } = useBusiness();
@@ -56,6 +57,7 @@ const MenuManagement = () => {
         price: formData.price || '',
         category: formData.category || 'Main Course',
         available: formData.available ?? true,
+        image: formData.image,
       };
       addMenuItem(newItem);
       toast.success('Menu item added! 🍽️');
@@ -67,6 +69,7 @@ const MenuManagement = () => {
       price: '',
       category: 'Main Course',
       available: true,
+      image: undefined,
     });
     setShowForm(false);
   };
@@ -169,6 +172,14 @@ const MenuManagement = () => {
                 />
               </div>
 
+              <ImageUpload
+                onImageSelect={(base64) =>
+                  setFormData({ ...formData, image: base64 })
+                }
+                currentImage={formData.image}
+                label="Dish Photo"
+              />
+
               <div className="flex gap-2">
                 <Button type="submit" className="flex-1">
                   {editingId ? 'Update Item' : 'Add Item'}
@@ -191,7 +202,16 @@ const MenuManagement = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {business.menu.map((item) => (
-          <Card key={item.id}>
+          <Card key={item.id} className="overflow-hidden">
+            {item.image && (
+              <div className="h-40 overflow-hidden">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-2">
                 <div>

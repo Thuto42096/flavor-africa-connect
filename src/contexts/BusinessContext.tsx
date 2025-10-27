@@ -7,6 +7,7 @@ export interface MenuItem {
   price: string;
   category: string;
   available: boolean;
+  image?: string; // Base64 encoded image
 }
 
 export interface Order {
@@ -36,6 +37,28 @@ export interface Notification {
   read: boolean;
 }
 
+export interface MediaItem {
+  id: string;
+  type: 'photo' | 'video';
+  title: string;
+  description: string;
+  url: string; // Base64 for photos, YouTube/Vimeo URL for videos
+  thumbnail?: string; // For videos
+  uploadedAt: string;
+}
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  content: string;
+  excerpt: string;
+  image?: string; // Base64 encoded image
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+  published: boolean;
+}
+
 export interface Business {
   id: string;
   name: string;
@@ -46,6 +69,8 @@ export interface Business {
   orders: Order[];
   hours: BusinessHours[];
   notifications: Notification[];
+  media: MediaItem[];
+  blog: BlogPost[];
   rating: number;
   totalOrders: number;
 }
@@ -61,6 +86,11 @@ interface BusinessContextType {
   addNotification: (notification: Notification) => void;
   markNotificationAsRead: (notificationId: string) => void;
   getUnreadNotifications: () => Notification[];
+  addMediaItem: (media: MediaItem) => void;
+  deleteMediaItem: (mediaId: string) => void;
+  addBlogPost: (post: BlogPost) => void;
+  updateBlogPost: (postId: string, post: BlogPost) => void;
+  deleteBlogPost: (postId: string) => void;
 }
 
 const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
@@ -172,6 +202,53 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return business?.notifications.filter((n) => !n.read) || [];
   };
 
+  // Media Management Functions
+  const addMediaItem = (media: MediaItem) => {
+    if (!business) return;
+    const updated = {
+      ...business,
+      media: [media, ...business.media],
+    };
+    saveBusiness(updated);
+  };
+
+  const deleteMediaItem = (mediaId: string) => {
+    if (!business) return;
+    const updated = {
+      ...business,
+      media: business.media.filter((item) => item.id !== mediaId),
+    };
+    saveBusiness(updated);
+  };
+
+  // Blog Management Functions
+  const addBlogPost = (post: BlogPost) => {
+    if (!business) return;
+    const updated = {
+      ...business,
+      blog: [post, ...business.blog],
+    };
+    saveBusiness(updated);
+  };
+
+  const updateBlogPost = (postId: string, post: BlogPost) => {
+    if (!business) return;
+    const updated = {
+      ...business,
+      blog: business.blog.map((p) => (p.id === postId ? post : p)),
+    };
+    saveBusiness(updated);
+  };
+
+  const deleteBlogPost = (postId: string) => {
+    if (!business) return;
+    const updated = {
+      ...business,
+      blog: business.blog.filter((p) => p.id !== postId),
+    };
+    saveBusiness(updated);
+  };
+
   const value = {
     business,
     addMenuItem,
@@ -183,6 +260,11 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     addNotification,
     markNotificationAsRead,
     getUnreadNotifications,
+    addMediaItem,
+    deleteMediaItem,
+    addBlogPost,
+    updateBlogPost,
+    deleteBlogPost,
   };
 
   return (

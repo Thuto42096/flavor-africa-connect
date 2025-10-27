@@ -67,6 +67,8 @@ const BusinessOnboarding = () => {
         { day: 'Sunday', open: '12:00', close: '20:00', closed: false },
       ],
       notifications: business?.notifications || [],
+      media: business?.media || [],
+      blog: business?.blog || [],
       rating: business?.rating || 4.5,
       totalOrders: business?.totalOrders || 0,
     };
