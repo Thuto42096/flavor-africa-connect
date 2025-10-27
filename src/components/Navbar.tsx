@@ -9,13 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MapPin, User, LogOut, Heart } from "lucide-react";
+import { MapPin, User, LogOut, Heart, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const Navbar = () => {
   const location = useLocation();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isBusinessOwner } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -45,32 +45,57 @@ const Navbar = () => {
         </Link>
         
         <div className="hidden md:flex items-center space-x-6">
-          <Link 
-            to="/discover" 
+          <Link
+            to="/discover"
             className={`text-sm font-medium transition-colors hover:text-primary ${
               isActive('/discover') ? 'text-primary' : 'text-foreground'
             }`}
           >
             Discover
           </Link>
-          <Link 
-            to="/for-businesses" 
-            className={`text-sm font-medium transition-colors hover:text-primary ${
-              isActive('/for-businesses') ? 'text-primary' : 'text-foreground'
-            }`}
-          >
-            For Businesses
-          </Link>
-          <Link 
-            to="/blog" 
+
+          {/* Conditional link based on user role */}
+          {isAuthenticated && user ? (
+            isBusinessOwner ? (
+              <Link
+                to="/vendor-dashboard"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  isActive('/vendor-dashboard') ? 'text-primary' : 'text-foreground'
+                }`}
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                to="/profile"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  isActive('/profile') ? 'text-primary' : 'text-foreground'
+                }`}
+              >
+                Orders
+              </Link>
+            )
+          ) : (
+            <Link
+              to="/for-businesses"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                isActive('/for-businesses') ? 'text-primary' : 'text-foreground'
+              }`}
+            >
+              For Businesses
+            </Link>
+          )}
+
+          <Link
+            to="/blog"
             className={`text-sm font-medium transition-colors hover:text-primary ${
               isActive('/blog') ? 'text-primary' : 'text-foreground'
             }`}
           >
             Blog
           </Link>
-          <Link 
-            to="/community" 
+          <Link
+            to="/community"
             className={`text-sm font-medium transition-colors hover:text-primary ${
               isActive('/community') ? 'text-primary' : 'text-foreground'
             }`}
