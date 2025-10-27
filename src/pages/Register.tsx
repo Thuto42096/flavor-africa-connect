@@ -9,7 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { MapPin, Users, Store } from "lucide-react";
+import { MapPin, Users, Store, AlertCircle, CheckCircle } from "lucide-react";
+import { passwordService } from "@/services/passwordService";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -25,14 +26,21 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
-      toast.error("Eish! Passwords don't match, my bru 😅");
+    // Validate required fields
+    if (!name || !email || !password || !confirmPassword) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters, sho! 🔒");
+    // Validate password strength and match
+    const validation = passwordService.validatePassword(password, confirmPassword);
+    if (!validation.isValid) {
+      validation.errors.forEach(error => toast.error(error));
       return;
+    }
+
+    if (validation.warnings.length > 0) {
+      validation.warnings.forEach(warning => toast.warning(warning));
     }
 
     setIsLoading(true);
@@ -41,11 +49,8 @@ const Register = () => {
       const success = await register(name, email, password, phone, userType);
       if (success) {
         toast.success("Yebo! Welcome to the fam! 🎉🔥");
-        if (userType === 'business_owner') {
-          navigate("/business-onboarding");
-        } else {
-          navigate("/");
-        }
+        // Redirect to email verification
+        navigate("/verify-email");
       } else {
         toast.error("Haibo! This email is already registered 😬");
       }
@@ -133,6 +138,47 @@ const Register = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                {password && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all ${
+                            passwordService.getPasswordStrengthPercentage(password) < 40
+                              ? 'bg-red-500'
+                              : passwordService.getPasswordStrengthPercentage(password) < 60
+                              ? 'bg-yellow-500'
+                              : passwordService.getPasswordStrengthPercentage(password) < 80
+                              ? 'bg-blue-500'
+                              : 'bg-green-500'
+                          }`}
+                          style={{
+                            width: `${passwordService.getPasswordStrengthPercentage(password)}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-xs font-medium">
+                        {passwordService.validatePasswordStrength(password).level}
+                      </span>
+                    </div>
+                    {passwordService.validatePasswordStrength(password).feedback.length > 0 && (
+                      <div className="text-xs space-y-1">
+                        {passwordService.validatePasswordStrength(password).feedback.map((feedback, idx) => (
+                          <div key={idx} className="flex items-center gap-1 text-amber-600">
+                            <AlertCircle className="h-3 w-3" />
+                            {feedback}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {passwordService.validatePasswordStrength(password).isValid && (
+                      <div className="flex items-center gap-1 text-green-600 text-xs">
+                        <CheckCircle className="h-3 w-3" />
+                        Strong password!
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

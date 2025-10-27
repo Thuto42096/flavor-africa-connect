@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit2, Plus, Eye, EyeOff } from 'lucide-react';
 import { useBusiness, BlogPost } from '@/contexts/BusinessContext';
 import { toast } from 'sonner';
-import ImageUpload from './ImageUpload';
+import FirebaseImageUpload from './FirebaseImageUpload';
 
 const BlogManagement = () => {
   const { business, addBlogPost, updateBlogPost, deleteBlogPost } = useBusiness();
@@ -157,10 +157,11 @@ const BlogManagement = () => {
                 />
               </div>
 
-              <ImageUpload
-                onImageSelect={(base64) => setFormData({ ...formData, image: base64 })}
+              <FirebaseImageUpload
+                onImageSelect={(url) => setFormData({ ...formData, image: url })}
                 currentImage={formData.image}
                 label="Featured Image"
+                storagePath={`businesses/${business.id}/blog`}
               />
 
               <div className="flex items-center gap-2">

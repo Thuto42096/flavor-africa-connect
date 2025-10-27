@@ -1,4 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+  User as FirebaseUser,
+} from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
+import { emailVerificationService } from '@/services/emailVerificationService';
 
 export interface User {
   id: string;
@@ -10,15 +21,19 @@ export interface User {
   joinedDate: string;
   role?: 'customer' | 'business_owner';
   businessId?: string;
+  emailVerified?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string, phone?: string, role?: 'customer' | 'business_owner') => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  resendVerificationEmail: () => Promise<{ success: boolean; message: string }>;
   isAuthenticated: boolean;
   isBusinessOwner: boolean;
+  isLoading: boolean;
+  isEmailVerified: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,63 +48,160 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load user from localStorage on mount
+  // Listen to Firebase auth state changes and real-time user profile updates
   useEffect(() => {
-    const storedUser = localStorage.getItem('tastelocal_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+      try {
+        if (firebaseUser) {
+          // Subscribe to real-time user profile updates
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const unsubscribeProfile = onSnapshot(userDocRef, (userDocSnap) => {
+            if (userDocSnap.exists()) {
+              const userData = userDocSnap.data();
+              setUser({
+                id: firebaseUser.uid,
+                name: userData.name || firebaseUser.displayName || '',
+                email: firebaseUser.email || '',
+                phone: userData.phone,
+                location: userData.location,
+                avatar: userData.avatar,
+                joinedDate: userData.joinedDate,
+                role: userData.role,
+                businessId: userData.businessId,
+                emailVerified: firebaseUser.emailVerified,
+              });
+            } else {
+              // User exists in Firebase Auth but not in Firestore (shouldn't happen)
+              setUser({
+                id: firebaseUser.uid,
+                name: firebaseUser.displayName || '',
+                email: firebaseUser.email || '',
+                joinedDate: new Date().toISOString(),
+                role: 'customer',
+                emailVerified: firebaseUser.emailVerified,
+              });
+            }
+            setIsLoading(false);
+          });
+
+          return () => unsubscribeProfile();
+        } else {
+          setUser(null);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+        setUser(null);
+        setIsLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // For now, simulate login with localStorage
-    const users = JSON.parse(localStorage.getItem('tastelocal_users') || '[]');
-    const foundUser = users.find((u: any) => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem('tastelocal_user', JSON.stringify(userWithoutPassword));
+    try {
+      setIsLoading(true);
+      await signInWithEmailAndPassword(auth, email, password);
       return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-    return false;
   };
 
-  const register = async (name: string, email: string, password: string, phone?: string, role: 'customer' | 'business_owner' = 'customer'): Promise<boolean> => {
-    // Check if user already exists
-    const users = JSON.parse(localStorage.getItem('tastelocal_users') || '[]');
-    const existingUser = users.find((u: any) => u.email === email);
+  const register = async (
+    name: string,
+    email: string,
+    password: string,
+    phone?: string,
+    role: 'customer' | 'business_owner' = 'customer'
+  ): Promise<boolean> => {
+    try {
+      setIsLoading(true);
 
-    if (existingUser) {
-      return false; // User already exists
+      // Create Firebase Auth user
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+
+      // Update display name
+      await updateProfile(firebaseUser, { displayName: name });
+
+      // Create user profile in Firestore
+      const businessId = role === 'business_owner' ? `business_${Date.now()}` : undefined;
+      const userProfileData = {
+        name,
+        email,
+        phone: phone || '',
+        location: '',
+        avatar: '',
+        joinedDate: new Date().toISOString(),
+        role,
+        emailVerified: false,
+        verificationEmailSentAt: new Date().toISOString(),
+        ...(businessId && { businessId }),
+      };
+
+      await setDoc(doc(db, 'users', firebaseUser.uid), userProfileData);
+
+      // Send verification email
+      await emailVerificationService.sendVerificationEmail(firebaseUser);
+
+      // If business owner, create initial business profile
+      if (role === 'business_owner' && businessId) {
+        await setDoc(doc(db, 'businesses', businessId), {
+          id: businessId,
+          ownerId: firebaseUser.uid,
+          name: '',
+          phone: '',
+          location: '',
+          description: '',
+          menu: [],
+          orders: [],
+          hours: [],
+          notifications: [],
+          media: [],
+          blog: [],
+          rating: 0,
+          totalOrders: 0,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Registration error:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-
-    // Create new user
-    const newUser = {
-      id: `user_${Date.now()}`,
-      name,
-      email,
-      phone,
-      password, // In production, this would be hashed
-      joinedDate: new Date().toISOString(),
-      role,
-      ...(role === 'business_owner' && { businessId: `business_${Date.now()}` }),
-    };
-
-    users.push(newUser);
-    localStorage.setItem('tastelocal_users', JSON.stringify(users));
-
-    // Log them in
-    const { password: _, ...userWithoutPassword } = newUser;
-    setUser(userWithoutPassword);
-    localStorage.setItem('tastelocal_user', JSON.stringify(userWithoutPassword));
-    return true;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('tastelocal_user');
+  const logout = async (): Promise<void> => {
+    try {
+      setIsLoading(true);
+      await signOut(auth);
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendVerificationEmail = async (): Promise<{ success: boolean; message: string }> => {
+    if (!user || !auth.currentUser) {
+      return {
+        success: false,
+        message: 'User not found',
+      };
+    }
+
+    return emailVerificationService.resendVerificationEmail(auth.currentUser);
   };
 
   const value = {
@@ -97,8 +209,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     register,
     logout,
+    resendVerificationEmail,
     isAuthenticated: !!user,
     isBusinessOwner: user?.role === 'business_owner',
+    isLoading,
+    isEmailVerified: user?.emailVerified ?? false,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

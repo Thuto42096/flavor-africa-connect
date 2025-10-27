@@ -19,9 +19,13 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const handleLogout = () => {
-    logout();
-    toast.success("Sharp sharp! See you later! 👋");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Sharp sharp! See you later! 👋");
+    } catch (error) {
+      toast.error("Error signing out. Please try again.");
+    }
   };
 
   const getInitials = (name: string) => {

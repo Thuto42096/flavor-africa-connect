@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
+import { firestoreBusinessService } from '@/services/firestoreBusinessService';
 
 export interface MenuItem {
   id: string;
@@ -7,7 +9,7 @@ export interface MenuItem {
   price: string;
   category: string;
   available: boolean;
-  image?: string; // Base64 encoded image
+  image?: string; // Base64 encoded image or Firebase Storage URL
 }
 
 export interface Order {
@@ -42,7 +44,7 @@ export interface MediaItem {
   type: 'photo' | 'video';
   title: string;
   description: string;
-  url: string; // Base64 for photos, YouTube/Vimeo URL for videos
+  url: string; // Base64, Firebase Storage URL for photos, or YouTube/Vimeo URL for videos
   thumbnail?: string; // For videos
   uploadedAt: string;
 }
@@ -52,7 +54,7 @@ export interface BlogPost {
   title: string;
   content: string;
   excerpt: string;
-  image?: string; // Base64 encoded image
+  image?: string; // Base64 encoded image or Firebase Storage URL
   author: string;
   createdAt: string;
   updatedAt: string;
@@ -61,6 +63,7 @@ export interface BlogPost {
 
 export interface Business {
   id: string;
+  ownerId: string;
   name: string;
   phone: string;
   location: string;
@@ -73,6 +76,7 @@ export interface Business {
   blog: BlogPost[];
   rating: number;
   totalOrders: number;
+  createdAt?: string;
 }
 
 interface BusinessContextType {
@@ -105,18 +109,36 @@ export const useBusiness = () => {
 
 export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [business, setBusiness] = useState<Business | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
-  // Load business from localStorage on mount
+  // Load business from Firestore on mount
   useEffect(() => {
-    const storedBusiness = localStorage.getItem('tastelocal_business');
-    if (storedBusiness) {
-      setBusiness(JSON.parse(storedBusiness));
+    if (!user?.businessId) {
+      setIsLoading(false);
+      return;
     }
-  }, []);
 
-  const saveBusiness = (updatedBusiness: Business) => {
-    setBusiness(updatedBusiness);
-    localStorage.setItem('tastelocal_business', JSON.stringify(updatedBusiness));
+    setIsLoading(true);
+    const unsubscribe = firestoreBusinessService.subscribeToBusiness(
+      user.businessId,
+      (businessData) => {
+        setBusiness(businessData);
+        setIsLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user?.businessId]);
+
+  const saveBusiness = async (updatedBusiness: Business) => {
+    if (!updatedBusiness.id) return;
+    try {
+      setBusiness(updatedBusiness);
+      await firestoreBusinessService.updateBusiness(updatedBusiness.id, updatedBusiness);
+    } catch (error) {
+      console.error('Error saving business:', error);
+    }
   };
 
   const addMenuItem = (item: MenuItem) => {

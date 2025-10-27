@@ -20,10 +20,14 @@ const Profile = () => {
     return null;
   }
 
-  const handleLogout = () => {
-    logout();
-    toast.success("Sharp sharp! See you later! 👋");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Sharp sharp! See you later! 👋");
+      navigate("/");
+    } catch (error) {
+      toast.error("Error signing out. Please try again.");
+    }
   };
 
   // Mock data for user's reviews and favorites

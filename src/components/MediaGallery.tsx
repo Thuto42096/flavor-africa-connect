@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Trash2, Plus, Image as ImageIcon, Video } from 'lucide-react';
 import { useBusiness, MediaItem } from '@/contexts/BusinessContext';
 import { toast } from 'sonner';
-import ImageUpload from './ImageUpload';
+import FirebaseImageUpload from './FirebaseImageUpload';
 
 const MediaGallery = () => {
   const { business, addMediaItem, deleteMediaItem } = useBusiness();
@@ -29,7 +29,7 @@ const MediaGallery = () => {
     );
   }
 
-  const handlePhotoSubmit = (base64: string) => {
+  const handlePhotoSubmit = (url: string) => {
     if (!formData.title) {
       toast.error('Please add a title');
       return;
@@ -40,7 +40,7 @@ const MediaGallery = () => {
       type: 'photo',
       title: formData.title,
       description: formData.description,
-      url: base64,
+      url: url,
       uploadedAt: new Date().toISOString(),
     };
 
@@ -137,9 +137,10 @@ const MediaGallery = () => {
                   />
                 </div>
 
-                <ImageUpload
+                <FirebaseImageUpload
                   onImageSelect={handlePhotoSubmit}
                   label="Upload Photo"
+                  storagePath={`businesses/${business.id}/media`}
                 />
 
                 <Button variant="outline" onClick={resetForm} className="w-full">

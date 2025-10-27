@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { firestoreBusinessService } from '@/services/firestoreBusinessService';
 
 const BusinessOnboarding = () => {
   const navigate = useNavigate();
@@ -41,41 +42,45 @@ const BusinessOnboarding = () => {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.phone || !formData.location) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    // Store business data in localStorage
-    const businessData = {
-      id: user.businessId,
-      name: formData.name,
-      phone: formData.phone,
-      location: formData.location,
-      description: formData.description,
-      menu: business?.menu || [],
-      orders: business?.orders || [],
-      hours: business?.hours || [
-        { day: 'Monday', open: '10:00', close: '22:00', closed: false },
-        { day: 'Tuesday', open: '10:00', close: '22:00', closed: false },
-        { day: 'Wednesday', open: '10:00', close: '22:00', closed: false },
-        { day: 'Thursday', open: '10:00', close: '22:00', closed: false },
-        { day: 'Friday', open: '10:00', close: '23:00', closed: false },
-        { day: 'Saturday', open: '10:00', close: '23:00', closed: false },
-        { day: 'Sunday', open: '12:00', close: '20:00', closed: false },
-      ],
-      notifications: business?.notifications || [],
-      media: business?.media || [],
-      blog: business?.blog || [],
-      rating: business?.rating || 4.5,
-      totalOrders: business?.totalOrders || 0,
-    };
+    try {
+      // Update business data in Firestore
+      const businessData = {
+        name: formData.name,
+        phone: formData.phone,
+        location: formData.location,
+        description: formData.description,
+        menu: business?.menu || [],
+        orders: business?.orders || [],
+        hours: business?.hours || [
+          { day: 'Monday', open: '10:00', close: '22:00', closed: false },
+          { day: 'Tuesday', open: '10:00', close: '22:00', closed: false },
+          { day: 'Wednesday', open: '10:00', close: '22:00', closed: false },
+          { day: 'Thursday', open: '10:00', close: '22:00', closed: false },
+          { day: 'Friday', open: '10:00', close: '23:00', closed: false },
+          { day: 'Saturday', open: '10:00', close: '23:00', closed: false },
+          { day: 'Sunday', open: '12:00', close: '20:00', closed: false },
+        ],
+        notifications: business?.notifications || [],
+        media: business?.media || [],
+        blog: business?.blog || [],
+        rating: business?.rating || 4.5,
+        totalOrders: business?.totalOrders || 0,
+      };
 
-    localStorage.setItem('tastelocal_business', JSON.stringify(businessData));
-    toast.success('Business profile updated! 🎉');
-    navigate('/vendor-dashboard');
+      await firestoreBusinessService.updateBusiness(user.businessId!, businessData);
+      toast.success('Business profile updated! 🎉');
+      navigate('/vendor-dashboard');
+    } catch (error) {
+      console.error('Error updating business:', error);
+      toast.error('Failed to update business profile');
+    }
   };
 
   return (

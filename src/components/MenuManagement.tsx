@@ -16,7 +16,7 @@ import {
 import { Trash2, Edit2, Plus } from 'lucide-react';
 import { useBusiness, MenuItem } from '@/contexts/BusinessContext';
 import { toast } from 'sonner';
-import ImageUpload from './ImageUpload';
+import FirebaseImageUpload from './FirebaseImageUpload';
 
 const MenuManagement = () => {
   const { business, addMenuItem, updateMenuItem, deleteMenuItem } = useBusiness();
@@ -172,12 +172,13 @@ const MenuManagement = () => {
                 />
               </div>
 
-              <ImageUpload
-                onImageSelect={(base64) =>
-                  setFormData({ ...formData, image: base64 })
+              <FirebaseImageUpload
+                onImageSelect={(url) =>
+                  setFormData({ ...formData, image: url })
                 }
                 currentImage={formData.image}
                 label="Dish Photo"
+                storagePath={`businesses/${business.id}/menu`}
               />
 
               <div className="flex gap-2">
