@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,17 +10,26 @@ import { toast } from 'sonner';
 
 const BusinessHoursManagement = () => {
   const { business, updateBusinessHours } = useBusiness();
-  const [hours, setHours] = useState<BusinessHours[]>(
-    business?.hours || [
-      { day: 'Monday', open: '10:00', close: '22:00', closed: false },
-      { day: 'Tuesday', open: '10:00', close: '22:00', closed: false },
-      { day: 'Wednesday', open: '10:00', close: '22:00', closed: false },
-      { day: 'Thursday', open: '10:00', close: '22:00', closed: false },
-      { day: 'Friday', open: '10:00', close: '23:00', closed: false },
-      { day: 'Saturday', open: '10:00', close: '23:00', closed: false },
-      { day: 'Sunday', open: '12:00', close: '20:00', closed: false },
-    ]
-  );
+  
+  const defaultHours: BusinessHours[] = [
+    { day: 'Monday', open: '10:00', close: '22:00', closed: false },
+    { day: 'Tuesday', open: '10:00', close: '22:00', closed: false },
+    { day: 'Wednesday', open: '10:00', close: '22:00', closed: false },
+    { day: 'Thursday', open: '10:00', close: '22:00', closed: false },
+    { day: 'Friday', open: '10:00', close: '23:00', closed: false },
+    { day: 'Saturday', open: '10:00', close: '23:00', closed: false },
+    { day: 'Sunday', open: '12:00', close: '20:00', closed: false },
+  ];
+  
+  const [hours, setHours] = useState<BusinessHours[]>(defaultHours);
+  
+  useEffect(() => {
+    if (business?.hours && business.hours.length > 0) {
+      setHours(business.hours);
+    } else {
+      setHours(defaultHours);
+    }
+  }, [business?.hours]);
 
   const handleTimeChange = (index: number, field: 'open' | 'close', value: string) => {
     const updated = [...hours];
@@ -34,9 +43,15 @@ const BusinessHoursManagement = () => {
     setHours(updated);
   };
 
-  const handleSave = () => {
-    updateBusinessHours(hours);
-    toast.success('Business hours updated! ⏰');
+  const handleSave = async () => {
+    try {
+      console.log('Saving hours:', hours);
+      await updateBusinessHours(hours);
+      toast.success('Business hours updated! ⏰');
+    } catch (error) {
+      console.error('Error saving hours:', error);
+      toast.error('Failed to save business hours. Please try again.');
+    }
   };
 
   return (

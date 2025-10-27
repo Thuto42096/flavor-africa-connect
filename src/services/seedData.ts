@@ -5,11 +5,11 @@ import food1 from '@/assets/food-1.jpg';
 import food2 from '@/assets/food-2.jpg';
 
 const sampleBusinesses: Omit<Business, 'id'>[] = [
-  { name: "Mama Thandi's Shisa Nyama", image: food1, cuisine: "Braai & Grill", location: "Soweto, Johannesburg", rating: 4.8, priceRange: "R", distance: "1.2km" },
-  { name: "Kota King", image: food2, cuisine: "Street Food", location: "Alexandra, Johannesburg", rating: 4.6, priceRange: "R", distance: "0.8km" },
-  { name: "Bunny Chow Palace", image: food1, cuisine: "Durban Curry", location: "Umlazi, Durban", rating: 4.9, priceRange: "R", distance: "2.1km" },
-  { name: "Boerewors & Pap Spot", image: food2, cuisine: "Traditional", location: "Mamelodi, Pretoria", rating: 4.7, priceRange: "R", distance: "1.5km" },
-  { name: "Smiley's Place", image: food1, cuisine: "Sheep Head & Offal", location: "Khayelitsha, Cape Town", rating: 4.5, priceRange: "RR", distance: "3.2km" },
+  { name: "Mama Thandi's Shisa Nyama", image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400", cuisine: "Braai & Grill", location: "Soweto, Johannesburg", rating: 4.8, priceRange: "R", distance: "1.2km" },
+  { name: "Kota King", image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400", cuisine: "Street Food", location: "Alexandra, Johannesburg", rating: 4.6, priceRange: "R", distance: "0.8km" },
+  { name: "Bunny Chow Palace", image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400", cuisine: "Durban Curry", location: "Umlazi, Durban", rating: 4.9, priceRange: "R", distance: "2.1km" },
+  { name: "Boerewors & Pap Spot", image: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400", cuisine: "Traditional", location: "Mamelodi, Pretoria", rating: 4.7, priceRange: "R", distance: "1.5km" },
+  { name: "Smiley's Place", image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400", cuisine: "Sheep Head & Offal", location: "Khayelitsha, Cape Town", rating: 4.5, priceRange: "RR", distance: "3.2km" },
 ];
 
 export const seedDatabase = async (): Promise<void> => {

@@ -27,12 +27,21 @@ const BusinessCard = ({
   return (
     <Link to={`/business/${id}`}>
       <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-        <div className="relative h-48 overflow-hidden">
-          <img
-            src={image}
-            alt={name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-          />
+        <div className="relative h-48 overflow-hidden bg-gray-200">
+          {image ? (
+            <img
+              src={image}
+              alt={name || 'Restaurant'}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              onError={(e) => {
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400';
+              }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+              <span className="text-gray-600 text-sm">No Image</span>
+            </div>
+          )}
           <Badge className="absolute top-3 right-3 bg-secondary">
             {cuisine}
           </Badge>

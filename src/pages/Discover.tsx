@@ -16,15 +16,16 @@ const Discover = () => {
   const [searchParams] = useSearchParams();
   const [cuisine, setCuisine] = useState("all");
   const [priceRange, setPriceRange] = useState("all");
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || "");
+  const [searchQuery, setSearchQuery] = useState("");
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fallbackBusinesses = [
-    { id: "1", name: "Mama Thandi's Shisa Nyama", image: food1, cuisine: "Braai & Grill", location: "Soweto, Johannesburg", rating: 4.8, priceRange: "R", distance: "1.2km" },
-    { id: "2", name: "Kota King", image: food2, cuisine: "Street Food", location: "Alexandra, Johannesburg", rating: 4.6, priceRange: "R", distance: "0.8km" },
-    { id: "3", name: "Bunny Chow Palace", image: food1, cuisine: "Durban Curry", location: "Umlazi, Durban", rating: 4.9, priceRange: "R", distance: "2.1km" },
+    { id: "1", name: "Mama Thandi's Shisa Nyama", image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400", cuisine: "Shisa Nyama & Braai", location: "Soweto, Johannesburg", rating: 4.8, priceRange: "R", distance: "1.2km" },
+    { id: "2", name: "Kota King", image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400", cuisine: "Kota & Street Food", location: "Alexandra, Johannesburg", rating: 4.6, priceRange: "R", distance: "0.8km" },
+    { id: "3", name: "Bunny Chow Palace", image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400", cuisine: "Bunny Chow & Curry", location: "Umlazi, Durban", rating: 4.9, priceRange: "R", distance: "2.1km" },
+    { id: "4", name: "Boerewors & Pap Spot", image: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400", cuisine: "Traditional Braai", location: "Mamelodi, Pretoria", rating: 4.7, priceRange: "R", distance: "1.5km" },
   ];
 
   useEffect(() => {
@@ -32,8 +33,13 @@ const Discover = () => {
       try {
         await seedDatabase(); // Auto-populate if empty
         const data = await businessService.getAll();
-        setAllBusinesses(data);
-        setBusinesses(data);
+        
+        // Check if data has valid businesses (not empty objects)
+        const validData = data.filter(business => business.name && business.name.trim() !== '');
+        const businessData = validData.length > 0 ? validData : fallbackBusinesses;
+        
+        setAllBusinesses(businessData);
+        setBusinesses(businessData);
       } catch (error) {
         console.error('Firebase error, using fallback data');
         setAllBusinesses(fallbackBusinesses);
@@ -45,37 +51,51 @@ const Discover = () => {
     fetchBusinesses();
   }, []);
 
+  // Set initial search from URL parameter
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) {
+      setSearchQuery(urlSearch);
+    }
+  }, [searchParams]);
+
   // Filter businesses based on search and filters
   useEffect(() => {
-    if (allBusinesses.length === 0) return;
+    if (allBusinesses.length === 0) {
+      setBusinesses([]);
+      return;
+    }
     
     let filtered = [...allBusinesses];
-    console.log('All businesses:', allBusinesses.length);
-    console.log('Search query:', searchQuery);
 
-    // Search filter
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(business => 
-        business.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        business.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        business.cuisine?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      console.log('After search filter:', filtered.length);
+    // Search filter - only apply if there's a search query
+    if (searchQuery && searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      
+      filtered = filtered.filter(business => {
+        const name = (business.name || '').toLowerCase();
+        const location = (business.location || '').toLowerCase();
+        const cuisine = (business.cuisine || '').toLowerCase();
+        
+        // Check if search query matches any field
+        return name.includes(query) || 
+               location.includes(query) || 
+               cuisine.includes(query);
+      });
     }
 
     // Cuisine filter
-    if (cuisine !== "all") {
+    if (cuisine && cuisine !== "all") {
       filtered = filtered.filter(business => 
         business.cuisine?.toLowerCase().includes(cuisine.toLowerCase())
       );
     }
 
     // Price range filter
-    if (priceRange !== "all") {
+    if (priceRange && priceRange !== "all") {
       filtered = filtered.filter(business => business.priceRange === priceRange);
     }
 
-    console.log('Final filtered:', filtered.length);
     setBusinesses(filtered);
   }, [searchQuery, cuisine, priceRange, allBusinesses]);
 

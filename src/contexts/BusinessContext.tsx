@@ -86,7 +86,7 @@ interface BusinessContextType {
   deleteMenuItem: (id: string) => void;
   addOrder: (order: Order) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
-  updateBusinessHours: (hours: BusinessHours[]) => void;
+  updateBusinessHours: (hours: BusinessHours[]) => Promise<void>;
   addNotification: (notification: Notification) => void;
   markNotificationAsRead: (notificationId: string) => void;
   getUnreadNotifications: () => Notification[];
@@ -191,13 +191,15 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     saveBusiness(updated);
   };
 
-  const updateBusinessHours = (hours: BusinessHours[]) => {
-    if (!business) return;
+  const updateBusinessHours = async (hours: BusinessHours[]) => {
+    if (!business) {
+      throw new Error('No business found');
+    }
     const updated = {
       ...business,
       hours,
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
   const addNotification = (notification: Notification) => {
