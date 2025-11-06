@@ -23,18 +23,26 @@ import {
 
 // Helper function to recursively remove undefined values
 const removeUndefinedValues = (obj: any): any => {
-  if (obj === null || obj === undefined) {
+  if (obj === null) {
+    return null; // Keep null values, only remove undefined
+  }
+
+  if (obj === undefined) {
     return undefined;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => removeUndefinedValues(item)).filter(item => item !== undefined);
+    // Map each item and remove undefined items, but keep null items
+    return obj
+      .map(item => removeUndefinedValues(item))
+      .filter(item => item !== undefined);
   }
 
-  if (typeof obj === 'object') {
+  if (typeof obj === 'object' && obj !== null) {
     const cleaned: any = {};
     for (const [key, value] of Object.entries(obj)) {
       const cleanedValue = removeUndefinedValues(value);
+      // Only add the key if the value is not undefined
       if (cleanedValue !== undefined) {
         cleaned[key] = cleanedValue;
       }
@@ -46,6 +54,17 @@ const removeUndefinedValues = (obj: any): any => {
 };
 
 export const firestoreBusinessService = {
+  // Get all businesses
+  async getAllBusinesses(): Promise<Business[]> {
+    try {
+      const snapshot = await getDocs(collection(db, 'businesses'));
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Business));
+    } catch (error) {
+      console.error('Error getting all businesses:', error);
+      return [];
+    }
+  },
+
   // Get business by ID
   async getBusiness(businessId: string): Promise<Business | null> {
     try {
@@ -89,9 +108,23 @@ export const firestoreBusinessService = {
       const docRef = doc(db, 'businesses', businessId);
       // Recursively remove undefined values to prevent Firebase errors
       const cleanedUpdates = removeUndefinedValues(updates);
+
+      // Log the cleaned updates for debugging
+      console.log('Cleaned updates:', cleanedUpdates);
+
+      // Verify no undefined values remain
+      const hasUndefined = JSON.stringify(cleanedUpdates).includes('undefined');
+      if (hasUndefined) {
+        console.warn('Warning: Cleaned updates still contain undefined values');
+      }
+
       await updateDoc(docRef, cleanedUpdates);
     } catch (error) {
       console.error('Error updating business:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
       throw error;
     }
   },

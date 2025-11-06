@@ -47,7 +47,11 @@ const MenuManagement = () => {
 
     try {
       if (editingId) {
-        await updateMenuItem(editingId, formData);
+        // Filter out undefined values from formData before updating
+        const cleanedUpdates = Object.fromEntries(
+          Object.entries(formData).filter(([, value]) => value !== undefined)
+        );
+        await updateMenuItem(editingId, cleanedUpdates);
         toast.success('Menu item updated! 🎉');
         setEditingId(null);
       } else {
@@ -58,7 +62,7 @@ const MenuManagement = () => {
           price: formData.price || '',
           category: formData.category || 'Main Course',
           available: formData.available ?? true,
-          image: formData.image,
+          ...(formData.image && { image: formData.image }),
         };
         await addMenuItem(newItem);
         toast.success('Menu item added! 🍽️');
