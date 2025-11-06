@@ -58,14 +58,27 @@ export const firestoreBusinessService = {
   async getAllBusinesses(): Promise<Business[]> {
     try {
       const snapshot = await getDocs(collection(db, 'businesses'));
+      console.log(`Total documents in Firestore: ${snapshot.docs.length}`);
+
+      // Log all document IDs
+      snapshot.docs.forEach(doc => {
+        console.log(`Document ID: ${doc.id}`);
+      });
+
       // Filter out only the malformed 'Businesses' collection document
-      return snapshot.docs
+      const filtered = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() } as Business))
         .filter(business => {
           // Only filter out documents with invalid collection-level IDs
           const hasValidId = business.id !== 'Businesses' && business.id !== 'businesses';
+          if (!hasValidId) {
+            console.log(`Filtering out document with ID: ${business.id}`);
+          }
           return hasValidId;
         });
+
+      console.log(`Businesses after filtering: ${filtered.length}`);
+      return filtered;
     } catch (error) {
       console.error('Error getting all businesses:', error);
       return [];
