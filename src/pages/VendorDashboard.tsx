@@ -1,9 +1,13 @@
-import { useState } from "react";
-import { BarChart3, Eye, TrendingUp, Users, ShoppingCart, UtensilsCrossed, Clock, Bell, Image, BookOpen } from "lucide-react";
+import { useState, useEffect } from "react";
+import { BarChart3, Eye, TrendingUp, Users, ShoppingCart, UtensilsCrossed, Clock, Bell, Image, BookOpen, Edit2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import OrdersManagement from "@/components/OrdersManagement";
@@ -14,11 +18,59 @@ import MediaGallery from "@/components/MediaGallery";
 import BlogManagement from "@/components/BlogManagement";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const VendorDashboard = () => {
-  const { business } = useBusiness();
+  const { business, updateBusinessInfo } = useBusiness();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    location: "",
+    description: "",
+  });
+
+  // Update form data when business loads
+  useEffect(() => {
+    if (business) {
+      setFormData({
+        name: business.name || "",
+        phone: business.phone || "",
+        location: business.location || "",
+        description: business.description || "",
+      });
+    }
+  }, [business]);
+
+  const handleEditBusiness = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!business) {
+      toast.error("No business found to update");
+      return;
+    }
+
+    setIsUpdating(true);
+
+    try {
+      await updateBusinessInfo({
+        name: formData.name,
+        phone: formData.phone,
+        location: formData.location,
+        description: formData.description,
+      });
+      toast.success("Business profile updated! 🎉");
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating business:", error);
+      toast.error("Failed to update business profile. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const stats = [
     { icon: Eye, label: "Profile Views", value: "1,245", change: "+12.5%" },
@@ -50,7 +102,89 @@ const VendorDashboard = () => {
                   {business.notifications.filter(n => !n.read).length} New
                 </Badge>
               )}
-              <Button>Edit Profile</Button>
+              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Edit2 className="h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Edit Business Profile</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleEditBusiness} className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="businessName">Business Name *</Label>
+                      <Input
+                        id="businessName"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="e.g., Mama Thandi's Shisa Nyama"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="businessPhone">Phone Number *</Label>
+                      <Input
+                        id="businessPhone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="071 234 5678"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="businessLocation">Location *</Label>
+                      <Input
+                        id="businessLocation"
+                        value={formData.location}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        placeholder="e.g., Soweto, Johannesburg"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="businessDescription">Description</Label>
+                      <Textarea
+                        id="businessDescription"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Tell customers about your business..."
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-4">
+                      <Button type="submit" className="flex-1" disabled={isUpdating}>
+                        {isUpdating ? "Updating..." : "Save Changes"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditDialogOpen(false);
+                          if (business) {
+                            setFormData({
+                              name: business.name || "",
+                              phone: business.phone || "",
+                              location: business.location || "",
+                              description: business.description || "",
+                            });
+                          }
+                        }}
+                        disabled={isUpdating}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 

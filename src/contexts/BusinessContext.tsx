@@ -81,6 +81,7 @@ export interface Business {
 
 interface BusinessContextType {
   business: Business | null;
+  updateBusinessInfo: (updates: Partial<Pick<Business, 'name' | 'phone' | 'location' | 'description'>>) => Promise<void>;
   addMenuItem: (item: MenuItem) => Promise<void>;
   updateMenuItem: (id: string, item: Partial<MenuItem>) => Promise<void>;
   deleteMenuItem: (id: string) => Promise<void>;
@@ -148,6 +149,17 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       throw error;
     }
+  };
+
+  const updateBusinessInfo = async (
+    updates: Partial<Pick<Business, 'name' | 'phone' | 'location' | 'description'>>
+  ) => {
+    if (!business) throw new Error('No business found');
+    const updated = {
+      ...business,
+      ...updates,
+    };
+    await saveBusiness(updated);
   };
 
   const addMenuItem = async (item: MenuItem) => {
@@ -284,6 +296,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const value = {
     business,
+    updateBusinessInfo,
     addMenuItem,
     updateMenuItem,
     deleteMenuItem,
