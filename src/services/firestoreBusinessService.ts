@@ -21,6 +21,30 @@ import {
   BlogPost,
 } from '@/contexts/BusinessContext';
 
+// Helper function to recursively remove undefined values
+const removeUndefinedValues = (obj: any): any => {
+  if (obj === null || obj === undefined) {
+    return undefined;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeUndefinedValues(item)).filter(item => item !== undefined);
+  }
+
+  if (typeof obj === 'object') {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const cleanedValue = removeUndefinedValues(value);
+      if (cleanedValue !== undefined) {
+        cleaned[key] = cleanedValue;
+      }
+    }
+    return cleaned;
+  }
+
+  return obj;
+};
+
 export const firestoreBusinessService = {
   // Get business by ID
   async getBusiness(businessId: string): Promise<Business | null> {
@@ -63,10 +87,8 @@ export const firestoreBusinessService = {
   async updateBusiness(businessId: string, updates: Partial<Business>): Promise<void> {
     try {
       const docRef = doc(db, 'businesses', businessId);
-      // Filter out undefined values to prevent Firebase errors
-      const cleanedUpdates = Object.fromEntries(
-        Object.entries(updates).filter(([, value]) => value !== undefined)
-      );
+      // Recursively remove undefined values to prevent Firebase errors
+      const cleanedUpdates = removeUndefinedValues(updates);
       await updateDoc(docRef, cleanedUpdates);
     } catch (error) {
       console.error('Error updating business:', error);
