@@ -283,7 +283,18 @@ const BusinessProfile = () => {
                       <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div>
                         <p className="text-sm font-medium">Hours</p>
-                        <p className="text-sm text-muted-foreground">{business.hours}</p>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          {Array.isArray(business.hours) ? (
+                            business.hours.map((hour) => (
+                              <div key={hour.day}>
+                                <span className="font-medium">{hour.day}:</span>{" "}
+                                {hour.closed ? "Closed" : `${hour.open} - ${hour.close}`}
+                              </div>
+                            ))
+                          ) : (
+                            <p>{business.hours}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
