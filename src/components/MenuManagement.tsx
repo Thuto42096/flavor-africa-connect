@@ -70,7 +70,6 @@ const MenuManagement = () => {
         price: '',
         category: 'Main Course',
         available: true,
-        image: undefined,
       });
       setShowForm(false);
     } catch (error) {

@@ -63,7 +63,11 @@ export const firestoreBusinessService = {
   async updateBusiness(businessId: string, updates: Partial<Business>): Promise<void> {
     try {
       const docRef = doc(db, 'businesses', businessId);
-      await updateDoc(docRef, updates);
+      // Filter out undefined values to prevent Firebase errors
+      const cleanedUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([, value]) => value !== undefined)
+      );
+      await updateDoc(docRef, cleanedUpdates);
     } catch (error) {
       console.error('Error updating business:', error);
       throw error;

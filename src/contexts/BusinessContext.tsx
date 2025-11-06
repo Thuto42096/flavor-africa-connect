@@ -132,8 +132,11 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [user?.businessId]);
 
   const saveBusiness = async (updatedBusiness: Business) => {
-    if (!updatedBusiness.id) return;
+    if (!updatedBusiness.id) {
+      throw new Error('Business ID is required');
+    }
     try {
+      console.log('Saving business:', updatedBusiness);
       // Update Firebase first, then update local state on success
       await firestoreBusinessService.updateBusiness(updatedBusiness.id, updatedBusiness);
       setBusiness(updatedBusiness);
