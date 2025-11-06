@@ -58,14 +58,13 @@ export const firestoreBusinessService = {
   async getAllBusinesses(): Promise<Business[]> {
     try {
       const snapshot = await getDocs(collection(db, 'businesses'));
-      // Filter out invalid documents (documents without a name or with id 'Businesses')
+      // Filter out only the malformed 'Businesses' collection document
       return snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() } as Business))
         .filter(business => {
-          // Filter out documents that don't have a name or have invalid IDs
-          const hasValidName = business.name && business.name.trim() !== '';
+          // Only filter out documents with invalid collection-level IDs
           const hasValidId = business.id !== 'Businesses' && business.id !== 'businesses';
-          return hasValidName && hasValidId;
+          return hasValidId;
         });
     } catch (error) {
       console.error('Error getting all businesses:', error);
