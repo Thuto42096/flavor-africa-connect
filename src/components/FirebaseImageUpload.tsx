@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
-import { Upload, X, Loader, Cloud } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { X, Loader, Cloud } from 'lucide-react';
 import { toast } from 'sonner';
 import { storageService } from '@/services/storageService';
 
@@ -8,7 +7,7 @@ interface FirebaseImageUploadProps {
   onImageSelect: (url: string) => void;
   currentImage?: string;
   label?: string;
-  storagePath: string; // e.g., 'businesses/business_id/menu'
+  storagePath?: string; // e.g., 'businesses/business_id/menu' (kept for backwards compatibility)
   maxSizeMB?: number;
 }
 
@@ -16,7 +15,6 @@ const FirebaseImageUpload = ({
   onImageSelect,
   currentImage,
   label = 'Upload Image',
-  storagePath,
   maxSizeMB = 5,
 }: FirebaseImageUploadProps) => {
   const [preview, setPreview] = useState<string | undefined>(currentImage);
@@ -39,27 +37,21 @@ const FirebaseImageUpload = ({
     setUploadProgress(0);
 
     try {
-      // Create preview
+      // Create preview and convert to base64
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const previewUrl = e.target?.result as string;
-        setPreview(previewUrl);
+        const base64Url = e.target?.result as string;
+        setPreview(base64Url);
 
-        // Upload to Firebase Storage
-        const result = await storageService.uploadImage(file, storagePath);
-
-        if (result.success && result.url) {
-          onImageSelect(result.url);
-          toast.success('Image uploaded successfully! 📸');
-          setUploadProgress(100);
-        } else {
-          toast.error(result.error || 'Failed to upload image');
-          setPreview(undefined);
-        }
+        // Use base64 directly instead of uploading to Firebase Storage
+        // This avoids CORS issues
+        onImageSelect(base64Url);
+        toast.success('Image selected! 📸');
+        setUploadProgress(100);
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      toast.error('Failed to upload image');
+      toast.error('Failed to process image');
       setPreview(undefined);
     } finally {
       setIsLoading(false);
@@ -67,15 +59,7 @@ const FirebaseImageUpload = ({
     }
   };
 
-  const handleRemoveImage = async () => {
-    if (currentImage && currentImage.includes('firebasestorage')) {
-      try {
-        await storageService.deleteImage(currentImage);
-      } catch (error) {
-        console.error('Error deleting image:', error);
-      }
-    }
-
+  const handleRemoveImage = () => {
     setPreview(undefined);
     onImageSelect('');
     if (fileInputRef.current) {
@@ -108,11 +92,11 @@ const FirebaseImageUpload = ({
             </button>
           </div>
 
-          {currentImage?.includes('firebasestorage') && (
-            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+          {currentImage && (
+            <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-3">
+              <p className="text-xs font-semibold text-green-900 dark:text-green-100 flex items-center gap-2">
                 <Cloud className="h-3 w-3" />
-                Stored in Firebase Storage
+                Image stored locally
               </p>
             </div>
           )}
@@ -130,7 +114,7 @@ const FirebaseImageUpload = ({
             <>
               <Loader className="h-8 w-8 text-primary mb-2 animate-spin" />
               <p className="text-sm font-medium text-muted-foreground">
-                Uploading to Firebase...
+                Processing image...
               </p>
               {uploadProgress > 0 && (
                 <p className="text-xs text-muted-foreground mt-1">{uploadProgress}%</p>
