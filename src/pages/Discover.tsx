@@ -22,11 +22,11 @@ const Discover = () => {
   // Transform Business data for display in BusinessCard
   const transformBusinessForDisplay = (business: Business) => ({
     id: business.id,
-    name: business.name,
+    name: business.name || "New Business (Setup Pending)",
     image: business.image || "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400",
     cuisine: business.description || "Local Food",
-    location: business.location,
-    rating: business.rating || 4.5,
+    location: business.location || "Location not set",
+    rating: business.rating || 0,
     priceRange: "R",
     distance: "Near you",
   });
@@ -81,7 +81,7 @@ const Discover = () => {
       const query = searchQuery.toLowerCase().trim();
 
       filtered = filtered.filter(business => {
-        const name = (business.name || '').toLowerCase();
+        const name = (business.name || 'new business').toLowerCase();
         const location = (business.location || '').toLowerCase();
         const description = (business.description || '').toLowerCase();
 
