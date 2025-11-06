@@ -38,40 +38,45 @@ const MenuManagement = () => {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.price) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    if (editingId) {
-      updateMenuItem(editingId, formData);
-      toast.success('Menu item updated! 🎉');
-      setEditingId(null);
-    } else {
-      const newItem: MenuItem = {
-        id: `item_${Date.now()}`,
-        name: formData.name || '',
-        description: formData.description || '',
-        price: formData.price || '',
-        category: formData.category || 'Main Course',
-        available: formData.available ?? true,
-        image: formData.image,
-      };
-      addMenuItem(newItem);
-      toast.success('Menu item added! 🍽️');
-    }
+    try {
+      if (editingId) {
+        await updateMenuItem(editingId, formData);
+        toast.success('Menu item updated! 🎉');
+        setEditingId(null);
+      } else {
+        const newItem: MenuItem = {
+          id: `item_${Date.now()}`,
+          name: formData.name || '',
+          description: formData.description || '',
+          price: formData.price || '',
+          category: formData.category || 'Main Course',
+          available: formData.available ?? true,
+          image: formData.image,
+        };
+        await addMenuItem(newItem);
+        toast.success('Menu item added! 🍽️');
+      }
 
-    setFormData({
-      name: '',
-      description: '',
-      price: '',
-      category: 'Main Course',
-      available: true,
-      image: undefined,
-    });
-    setShowForm(false);
+      setFormData({
+        name: '',
+        description: '',
+        price: '',
+        category: 'Main Course',
+        available: true,
+        image: undefined,
+      });
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error saving menu item:', error);
+      toast.error('Failed to save menu item. Please try again.');
+    }
   };
 
   const handleEdit = (item: MenuItem) => {
@@ -80,9 +85,14 @@ const MenuManagement = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    deleteMenuItem(id);
-    toast.success('Menu item deleted! 🗑️');
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteMenuItem(id);
+      toast.success('Menu item deleted! 🗑️');
+    } catch (error) {
+      console.error('Error deleting menu item:', error);
+      toast.error('Failed to delete menu item. Please try again.');
+    }
   };
 
   const categories = ['Main Course', 'Sides', 'Drinks', 'Desserts', 'Snacks'];

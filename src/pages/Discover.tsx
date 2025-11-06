@@ -29,26 +29,35 @@ const Discover = () => {
   ];
 
   useEffect(() => {
-    const fetchBusinesses = async () => {
+    const setupBusinessesListener = async () => {
       try {
         await seedDatabase(); // Auto-populate if empty
-        const data = await businessService.getAll();
-        
-        // Check if data has valid businesses (not empty objects)
-        const validData = data.filter(business => business.name && business.name.trim() !== '');
-        const businessData = validData.length > 0 ? validData : fallbackBusinesses;
-        
-        setAllBusinesses(businessData);
-        setBusinesses(businessData);
+
+        // Subscribe to real-time updates
+        const unsubscribe = businessService.subscribeToAllBusinesses((data) => {
+          // Check if data has valid businesses (not empty objects)
+          const validData = data.filter(business => business.name && business.name.trim() !== '');
+          const businessData = validData.length > 0 ? validData : fallbackBusinesses;
+
+          setAllBusinesses(businessData);
+          setBusinesses(businessData);
+          setLoading(false);
+        });
+
+        return unsubscribe;
       } catch (error) {
         console.error('Firebase error, using fallback data');
         setAllBusinesses(fallbackBusinesses);
         setBusinesses(fallbackBusinesses);
-      } finally {
         setLoading(false);
       }
     };
-    fetchBusinesses();
+
+    const unsubscribePromise = setupBusinessesListener();
+
+    return () => {
+      unsubscribePromise.then(unsub => unsub?.());
+    };
   }, []);
 
   // Set initial search from URL parameter

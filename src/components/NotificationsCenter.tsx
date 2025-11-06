@@ -94,7 +94,13 @@ const NotificationsCenter = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => markNotificationAsRead(notification.id)}
+                        onClick={async () => {
+                          try {
+                            await markNotificationAsRead(notification.id);
+                          } catch (error) {
+                            console.error('Error marking notification as read:', error);
+                          }
+                        }}
                       >
                         Mark Read
                       </Button>

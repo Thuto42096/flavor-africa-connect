@@ -29,54 +29,64 @@ const MediaGallery = () => {
     );
   }
 
-  const handlePhotoSubmit = (url: string) => {
+  const handlePhotoSubmit = async (url: string) => {
     if (!formData.title) {
       toast.error('Please add a title');
       return;
     }
 
-    const newMedia: MediaItem = {
-      id: `media_${Date.now()}`,
-      type: 'photo',
-      title: formData.title,
-      description: formData.description,
-      url: url,
-      uploadedAt: new Date().toISOString(),
-    };
+    try {
+      const newMedia: MediaItem = {
+        id: `media_${Date.now()}`,
+        type: 'photo',
+        title: formData.title,
+        description: formData.description,
+        url: url,
+        uploadedAt: new Date().toISOString(),
+      };
 
-    addMediaItem(newMedia);
-    toast.success('Photo added to gallery! 📸');
-    resetForm();
+      await addMediaItem(newMedia);
+      toast.success('Photo added to gallery! 📸');
+      resetForm();
+    } catch (error) {
+      console.error('Error adding photo:', error);
+      toast.error('Failed to add photo. Please try again.');
+    }
   };
 
-  const handleVideoSubmit = (e: React.FormEvent) => {
+  const handleVideoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.url) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    // Validate YouTube/Vimeo URL
-    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)\//;
-    const vimeoRegex = /^(https?:\/\/)?(www\.)?vimeo\.com\//;
+    try {
+      // Validate YouTube/Vimeo URL
+      const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)\//;
+      const vimeoRegex = /^(https?:\/\/)?(www\.)?vimeo\.com\//;
 
-    if (!youtubeRegex.test(formData.url) && !vimeoRegex.test(formData.url)) {
-      toast.error('Please enter a valid YouTube or Vimeo URL');
-      return;
+      if (!youtubeRegex.test(formData.url) && !vimeoRegex.test(formData.url)) {
+        toast.error('Please enter a valid YouTube or Vimeo URL');
+        return;
+      }
+
+      const newMedia: MediaItem = {
+        id: `media_${Date.now()}`,
+        type: 'video',
+        title: formData.title,
+        description: formData.description,
+        url: formData.url,
+        uploadedAt: new Date().toISOString(),
+      };
+
+      await addMediaItem(newMedia);
+      toast.success('Video added! 🎬');
+      resetForm();
+    } catch (error) {
+      console.error('Error adding video:', error);
+      toast.error('Failed to add video. Please try again.');
     }
-
-    const newMedia: MediaItem = {
-      id: `media_${Date.now()}`,
-      type: 'video',
-      title: formData.title,
-      description: formData.description,
-      url: formData.url,
-      uploadedAt: new Date().toISOString(),
-    };
-
-    addMediaItem(newMedia);
-    toast.success('Video added! 🎬');
-    resetForm();
   };
 
   const resetForm = () => {
@@ -232,7 +242,15 @@ const MediaGallery = () => {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteMediaItem(photo.id)}
+                      onClick={async () => {
+                        try {
+                          await deleteMediaItem(photo.id);
+                          toast.success('Photo deleted! 🗑️');
+                        } catch (error) {
+                          console.error('Error deleting photo:', error);
+                          toast.error('Failed to delete photo. Please try again.');
+                        }
+                      }}
                       className="w-full"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
@@ -272,7 +290,15 @@ const MediaGallery = () => {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteMediaItem(video.id)}
+                      onClick={async () => {
+                        try {
+                          await deleteMediaItem(video.id);
+                          toast.success('Video deleted! 🗑️');
+                        } catch (error) {
+                          console.error('Error deleting video:', error);
+                          toast.error('Failed to delete video. Please try again.');
+                        }
+                      }}
                       className="w-full"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />

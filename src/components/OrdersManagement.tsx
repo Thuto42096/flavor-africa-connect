@@ -61,9 +61,14 @@ const OrdersManagement = () => {
     }
   };
 
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    updateOrderStatus(orderId, newStatus as Order['status']);
-    toast.success(`Order status updated to ${newStatus}! 🎉`);
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      await updateOrderStatus(orderId, newStatus as Order['status']);
+      toast.success(`Order status updated to ${newStatus}! 🎉`);
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      toast.error('Failed to update order status. Please try again.');
+    }
   };
 
   return (

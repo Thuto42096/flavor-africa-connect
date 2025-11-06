@@ -81,20 +81,20 @@ export interface Business {
 
 interface BusinessContextType {
   business: Business | null;
-  addMenuItem: (item: MenuItem) => void;
-  updateMenuItem: (id: string, item: Partial<MenuItem>) => void;
-  deleteMenuItem: (id: string) => void;
-  addOrder: (order: Order) => void;
-  updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  addMenuItem: (item: MenuItem) => Promise<void>;
+  updateMenuItem: (id: string, item: Partial<MenuItem>) => Promise<void>;
+  deleteMenuItem: (id: string) => Promise<void>;
+  addOrder: (order: Order) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   updateBusinessHours: (hours: BusinessHours[]) => Promise<void>;
-  addNotification: (notification: Notification) => void;
-  markNotificationAsRead: (notificationId: string) => void;
+  addNotification: (notification: Notification) => Promise<void>;
+  markNotificationAsRead: (notificationId: string) => Promise<void>;
   getUnreadNotifications: () => Notification[];
-  addMediaItem: (media: MediaItem) => void;
-  deleteMediaItem: (mediaId: string) => void;
-  addBlogPost: (post: BlogPost) => void;
-  updateBlogPost: (postId: string, post: BlogPost) => void;
-  deleteBlogPost: (postId: string) => void;
+  addMediaItem: (media: MediaItem) => Promise<void>;
+  deleteMediaItem: (mediaId: string) => Promise<void>;
+  addBlogPost: (post: BlogPost) => Promise<void>;
+  updateBlogPost: (postId: string, post: BlogPost) => Promise<void>;
+  deleteBlogPost: (postId: string) => Promise<void>;
 }
 
 const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
@@ -134,61 +134,67 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const saveBusiness = async (updatedBusiness: Business) => {
     if (!updatedBusiness.id) return;
     try {
-      setBusiness(updatedBusiness);
+      // Update Firebase first, then update local state on success
       await firestoreBusinessService.updateBusiness(updatedBusiness.id, updatedBusiness);
+      setBusiness(updatedBusiness);
     } catch (error) {
       console.error('Error saving business:', error);
+      // Revert to previous state on error
+      if (business) {
+        setBusiness(business);
+      }
+      throw error;
     }
   };
 
-  const addMenuItem = (item: MenuItem) => {
-    if (!business) return;
+  const addMenuItem = async (item: MenuItem) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       menu: [...business.menu, item],
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
-  const updateMenuItem = (id: string, updates: Partial<MenuItem>) => {
-    if (!business) return;
+  const updateMenuItem = async (id: string, updates: Partial<MenuItem>) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       menu: business.menu.map((item) =>
         item.id === id ? { ...item, ...updates } : item
       ),
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
-  const deleteMenuItem = (id: string) => {
-    if (!business) return;
+  const deleteMenuItem = async (id: string) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       menu: business.menu.filter((item) => item.id !== id),
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
-  const addOrder = (order: Order) => {
-    if (!business) return;
+  const addOrder = async (order: Order) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       orders: [order, ...business.orders],
       totalOrders: business.totalOrders + 1,
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
-  const updateOrderStatus = (orderId: string, status: Order['status']) => {
-    if (!business) return;
+  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       orders: business.orders.map((order) =>
         order.id === orderId ? { ...order, status } : order
       ),
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
   const updateBusinessHours = async (hours: BusinessHours[]) => {
@@ -202,24 +208,24 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await saveBusiness(updated);
   };
 
-  const addNotification = (notification: Notification) => {
-    if (!business) return;
+  const addNotification = async (notification: Notification) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       notifications: [notification, ...business.notifications],
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
-  const markNotificationAsRead = (notificationId: string) => {
-    if (!business) return;
+  const markNotificationAsRead = async (notificationId: string) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       notifications: business.notifications.map((notif) =>
         notif.id === notificationId ? { ...notif, read: true } : notif
       ),
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
   const getUnreadNotifications = () => {
@@ -227,50 +233,50 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   // Media Management Functions
-  const addMediaItem = (media: MediaItem) => {
-    if (!business) return;
+  const addMediaItem = async (media: MediaItem) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       media: [media, ...business.media],
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
-  const deleteMediaItem = (mediaId: string) => {
-    if (!business) return;
+  const deleteMediaItem = async (mediaId: string) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       media: business.media.filter((item) => item.id !== mediaId),
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
   // Blog Management Functions
-  const addBlogPost = (post: BlogPost) => {
-    if (!business) return;
+  const addBlogPost = async (post: BlogPost) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       blog: [post, ...business.blog],
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
-  const updateBlogPost = (postId: string, post: BlogPost) => {
-    if (!business) return;
+  const updateBlogPost = async (postId: string, post: BlogPost) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       blog: business.blog.map((p) => (p.id === postId ? post : p)),
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
-  const deleteBlogPost = (postId: string) => {
-    if (!business) return;
+  const deleteBlogPost = async (postId: string) => {
+    if (!business) throw new Error('No business found');
     const updated = {
       ...business,
       blog: business.blog.filter((p) => p.id !== postId),
     };
-    saveBusiness(updated);
+    await saveBusiness(updated);
   };
 
   const value = {

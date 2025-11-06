@@ -94,25 +94,22 @@ const BusinessProfile = () => {
   };
 
   useEffect(() => {
-    const fetchBusiness = async () => {
-      if (!id) return;
-      
-      try {
-        const data = await businessService.getById(id);
-        if (data && data.name) {
-          setBusiness(data);
-        } else {
-          // Use fallback data
-          setBusiness(fallbackBusinesses[id as keyof typeof fallbackBusinesses] || fallbackBusinesses["1"]);
-        }
-      } catch (error) {
+    if (!id) return;
+
+    setLoading(true);
+
+    // Subscribe to real-time updates
+    const unsubscribe = businessService.subscribeToBusinessById(id, (data) => {
+      if (data && data.name) {
+        setBusiness(data);
+      } else {
+        // Use fallback data
         setBusiness(fallbackBusinesses[id as keyof typeof fallbackBusinesses] || fallbackBusinesses["1"]);
-      } finally {
-        setLoading(false);
       }
-    };
-    
-    fetchBusiness();
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [id]);
 
   if (loading) {

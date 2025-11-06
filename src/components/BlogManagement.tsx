@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,50 +30,55 @@ const BlogManagement = () => {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.content) {
       toast.error('Please fill in title and content');
       return;
     }
 
-    const now = new Date().toISOString();
+    try {
+      const now = new Date().toISOString();
 
-    if (editingId) {
-      const existingPost = business.blog.find((p) => p.id === editingId);
-      if (existingPost) {
-        const updatedPost: BlogPost = {
-          id: editingId,
+      if (editingId) {
+        const existingPost = business.blog.find((p) => p.id === editingId);
+        if (existingPost) {
+          const updatedPost: BlogPost = {
+            id: editingId,
+            title: formData.title,
+            excerpt: formData.excerpt,
+            content: formData.content,
+            image: formData.image,
+            author: existingPost.author,
+            createdAt: existingPost.createdAt,
+            updatedAt: now,
+            published: formData.published,
+          };
+          await updateBlogPost(editingId, updatedPost);
+          toast.success('Blog post updated! 📝');
+          setEditingId(null);
+        }
+      } else {
+        const newPost: BlogPost = {
+          id: `blog_${Date.now()}`,
           title: formData.title,
           excerpt: formData.excerpt,
           content: formData.content,
           image: formData.image,
-          author: existingPost.author,
-          createdAt: existingPost.createdAt,
+          author: 'Business Owner',
+          createdAt: now,
           updatedAt: now,
           published: formData.published,
         };
-        updateBlogPost(editingId, updatedPost);
-        toast.success('Blog post updated! 📝');
-        setEditingId(null);
+        await addBlogPost(newPost);
+        toast.success('Blog post created! 📝');
       }
-    } else {
-      const newPost: BlogPost = {
-        id: `blog_${Date.now()}`,
-        title: formData.title,
-        excerpt: formData.excerpt,
-        content: formData.content,
-        image: formData.image,
-        author: 'Business Owner',
-        createdAt: now,
-        updatedAt: now,
-        published: formData.published,
-      };
-      addBlogPost(newPost);
-      toast.success('Blog post created! 📝');
-    }
 
-    resetForm();
+      resetForm();
+    } catch (error) {
+      console.error('Error saving blog post:', error);
+      toast.error('Failed to save blog post. Please try again.');
+    }
   };
 
   const handleEdit = (post: BlogPost) => {
@@ -88,10 +93,15 @@ const BlogManagement = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this post?')) {
-      deleteBlogPost(id);
-      toast.success('Blog post deleted');
+      try {
+        await deleteBlogPost(id);
+        toast.success('Blog post deleted');
+      } catch (error) {
+        console.error('Error deleting blog post:', error);
+        toast.error('Failed to delete blog post. Please try again.');
+      }
     }
   };
 
