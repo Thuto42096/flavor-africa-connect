@@ -8,8 +8,9 @@ import {
   User as FirebaseUser,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { emailVerificationService } from '@/services/emailVerificationService';
+import { userProfileService } from '@/services/userProfileService';
 
 export interface User {
   id: string;
@@ -29,6 +30,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string, phone?: string, role?: 'customer' | 'business_owner') => Promise<boolean>;
   logout: () => Promise<void>;
+  updateUserProfile: (updates: Partial<Omit<User, 'id' | 'email' | 'joinedDate' | 'role' | 'businessId' | 'emailVerified'>>) => Promise<void>;
   resendVerificationEmail: () => Promise<{ success: boolean; message: string }>;
   isAuthenticated: boolean;
   isBusinessOwner: boolean;
@@ -203,6 +205,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserProfile = async (
+    updates: Partial<Omit<User, 'id' | 'email' | 'joinedDate' | 'role' | 'businessId' | 'emailVerified'>>
+  ): Promise<void> => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    try {
+      setIsLoading(true);
+      await userProfileService.updateUserProfile(user.id, updates);
+      // The onSnapshot listener will automatically update the user state
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const resendVerificationEmail = async (): Promise<{ success: boolean; message: string }> => {
     if (!user || !auth.currentUser) {
       return {
@@ -219,6 +240,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     register,
     logout,
+    updateUserProfile,
     resendVerificationEmail,
     isAuthenticated: !!user,
     isBusinessOwner: user?.role === 'business_owner',

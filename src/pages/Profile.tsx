@@ -1,18 +1,31 @@
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { MapPin, Phone, Mail, Calendar, Star, Heart } from "lucide-react";
+import FirebaseImageUpload from "@/components/FirebaseImageUpload";
+import { MapPin, Phone, Mail, Calendar, Star, Heart, Edit2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Profile = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, updateUserProfile } = useAuth();
   const navigate = useNavigate();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    phone: user?.phone || "",
+    location: user?.location || "",
+    avatar: user?.avatar || "",
+  });
 
   // Redirect if not authenticated
   if (!isAuthenticated || !user) {
@@ -27,6 +40,27 @@ const Profile = () => {
       navigate("/");
     } catch (error) {
       toast.error("Error signing out. Please try again.");
+    }
+  };
+
+  const handleEditProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdating(true);
+
+    try {
+      await updateUserProfile({
+        name: formData.name,
+        phone: formData.phone,
+        location: formData.location,
+        avatar: formData.avatar,
+      });
+      toast.success("Profile updated successfully! 🎉");
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile. Please try again.");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -81,6 +115,9 @@ const Profile = () => {
             <CardContent className="p-8">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <Avatar className="h-24 w-24 border-4 border-primary/20">
+                  {user.avatar ? (
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                  ) : null}
                   <AvatarFallback className="text-2xl bg-primary text-white">
                     {getInitials(user.name)}
                   </AvatarFallback>
@@ -99,6 +136,12 @@ const Profile = () => {
                         <span>{user.phone}</span>
                       </div>
                     )}
+                    {user.location && (
+                      <div className="flex items-center justify-center md:justify-start gap-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{user.location}</span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-center md:justify-start gap-2">
                       <Calendar className="h-4 w-4" />
                       <span>Joined {formatDate(user.joinedDate)}</span>
@@ -107,9 +150,88 @@ const Profile = () => {
                   <Badge className="mt-4 bg-secondary">Kasi Food Lover 🔥</Badge>
                 </div>
 
-                <Button variant="outline" onClick={handleLogout}>
-                  Sign Out
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="default" className="gap-2">
+                        <Edit2 className="h-4 w-4" />
+                        Edit Profile
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Edit Your Profile</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleEditProfile} className="space-y-4 mt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Full Name</Label>
+                          <Input
+                            id="name"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            placeholder="Your full name"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">Phone Number</Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            placeholder="071 234 5678"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="location">Location</Label>
+                          <Input
+                            id="location"
+                            value={formData.location}
+                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                            placeholder="e.g., Soweto, Johannesburg"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <FirebaseImageUpload
+                            onImageSelect={(url) => setFormData({ ...formData, avatar: url })}
+                            currentImage={formData.avatar}
+                            label="Profile Picture"
+                            maxSizeMB={2}
+                          />
+                        </div>
+
+                        <div className="flex gap-2 pt-4">
+                          <Button type="submit" className="flex-1" disabled={isUpdating}>
+                            {isUpdating ? "Updating..." : "Save Changes"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setIsEditDialogOpen(false);
+                              setFormData({
+                                name: user.name,
+                                phone: user.phone || "",
+                                location: user.location || "",
+                                avatar: user.avatar || "",
+                              });
+                            }}
+                            disabled={isUpdating}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  <Button variant="outline" onClick={handleLogout}>
+                    Sign Out
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
