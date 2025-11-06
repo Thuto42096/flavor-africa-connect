@@ -15,13 +15,29 @@ export interface Business {
 export const businessService = {
   async getAll(): Promise<Business[]> {
     const snapshot = await getDocs(collection(db, 'businesses'));
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Business));
+    // Filter out invalid documents (documents without a name or with id 'Businesses')
+    return snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() } as Business))
+      .filter(business => {
+        // Filter out documents that don't have a name or have invalid IDs
+        const hasValidName = business.name && business.name.trim() !== '';
+        const hasValidId = business.id !== 'Businesses' && business.id !== 'businesses';
+        return hasValidName && hasValidId;
+      });
   },
 
   // Subscribe to real-time updates of all businesses
   subscribeToAllBusinesses(callback: (businesses: Business[]) => void): Unsubscribe {
     return onSnapshot(collection(db, 'businesses'), (snapshot) => {
-      const businesses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Business));
+      // Filter out invalid documents (documents without a name or with id 'Businesses')
+      const businesses = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() } as Business))
+        .filter(business => {
+          // Filter out documents that don't have a name or have invalid IDs
+          const hasValidName = business.name && business.name.trim() !== '';
+          const hasValidId = business.id !== 'Businesses' && business.id !== 'businesses';
+          return hasValidName && hasValidId;
+        });
       callback(businesses);
     });
   },
