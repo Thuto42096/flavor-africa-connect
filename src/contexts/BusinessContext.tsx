@@ -61,6 +61,12 @@ export interface BlogPost {
   published: boolean;
 }
 
+export interface SomaBChatData {
+  questionIndex: number;
+  businessData: Record<string, string>;
+  lastUpdated: string;
+}
+
 export interface Business {
   id: string;
   ownerId: string;
@@ -77,6 +83,7 @@ export interface Business {
   rating: number;
   totalOrders: number;
   createdAt?: string;
+  somaBChatData?: SomaBChatData;
 }
 
 interface BusinessContextType {
@@ -96,6 +103,7 @@ interface BusinessContextType {
   addBlogPost: (post: BlogPost) => Promise<void>;
   updateBlogPost: (postId: string, post: BlogPost) => Promise<void>;
   deleteBlogPost: (postId: string) => Promise<void>;
+  updateSomaBChatData: (chatData: SomaBChatData) => Promise<void>;
 }
 
 const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
@@ -294,6 +302,15 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await saveBusiness(updated);
   };
 
+  const updateSomaBChatData = async (chatData: SomaBChatData) => {
+    if (!business) throw new Error('No business found');
+    const updated = {
+      ...business,
+      somaBChatData: chatData,
+    };
+    await saveBusiness(updated);
+  };
+
   const value = {
     business,
     updateBusinessInfo,
@@ -311,6 +328,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     addBlogPost,
     updateBlogPost,
     deleteBlogPost,
+    updateSomaBChatData,
   };
 
   return (

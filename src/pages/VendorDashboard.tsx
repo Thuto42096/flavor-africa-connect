@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BarChart3, Eye, TrendingUp, Users, ShoppingCart, UtensilsCrossed, Clock, Bell, Image, BookOpen, Edit2 } from "lucide-react";
+import { BarChart3, Eye, TrendingUp, Users, ShoppingCart, UtensilsCrossed, Clock, Bell, Image, BookOpen, Edit2, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +16,7 @@ import BusinessHoursManagement from "@/components/BusinessHoursManagement";
 import NotificationsCenter from "@/components/NotificationsCenter";
 import MediaGallery from "@/components/MediaGallery";
 import BlogManagement from "@/components/BlogManagement";
+import SomaBChatbot from "@/components/SomaBChatbot";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -213,10 +214,14 @@ const VendorDashboard = () => {
 
           {/* Tabs Navigation */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Overview</span>
+              </TabsTrigger>
+              <TabsTrigger value="somab" className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                <span className="hidden sm:inline">Soma B</span>
               </TabsTrigger>
               <TabsTrigger value="orders" className="flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4" />
@@ -281,6 +286,11 @@ const VendorDashboard = () => {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            {/* Soma B AI Chatbot Tab */}
+            <TabsContent value="somab">
+              <SomaBChatbot />
             </TabsContent>
 
             {/* Orders Tab */}
