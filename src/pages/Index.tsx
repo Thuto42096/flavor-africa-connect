@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, TrendingUp, MapPin, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,37 @@ import { toast } from "sonner";
 import heroImage from "@/assets/hero-food.jpg";
 import food1 from "@/assets/food-1.jpg";
 import food2 from "@/assets/food-2.jpg";
+import kasiKota from "@/assets/tasteLocal-Kota.jpg";
+import kasiChisanyama from "@/assets/tasteLocal-chisanyama.jpg";
+import kasiCorner from "@/assets/tasteLocal-corner.jpg";
 import vendorImage from "@/assets/vendor-business.jpg";
 
 const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Hero carousel images
+  const heroImages = [
+    heroImage,
+    kasiKota,
+    kasiChisanyama,
+    kasiCorner,
+    food1,
+    food2,
+  ];
+
+  // Auto-advance carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000); // Change image every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -86,15 +111,21 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      {/* Hero Section */}
+      {/* Hero Section with Carousel */}
       <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImage})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60" />
-        </div>
-        
+        {/* Carousel Background Images */}
+        {heroImages.map((image, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${
+              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ backgroundImage: `url(${image})` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60" />
+          </div>
+        ))}
+
         <div className="relative z-10 container text-center text-white space-y-6 px-4">
           <h1 className="text-5xl md:text-6xl font-bold leading-tight">
             Discover the Best
